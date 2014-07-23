@@ -31,8 +31,8 @@ alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributo
 
 #remover tipo de recurso
 
-removerTipoRecurso  idTipoRecurso={$idTR1}
-expectError “Tipo de recurso não encontrado!” removerTipoRecurso  idTipoRecurso=${idTR1}
+removerTipoRecurso  idTipoRecurso=${idTR1}
+expectError "ResourceType not found!" removerTipoRecurso  idTipoRecurso=${idTR1}
 
 ##
 #criando recursos e garantindo que não pode remover atributos utilizados
