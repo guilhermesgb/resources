@@ -1,33 +1,33 @@
 #### TESTES para RECURSOS ####
 
 #criar tipo de recurso
-expectError “Nome e descrição inválidos!" criarTipoRecurso nome= descricao=
-expectError “Nome inválido!" criarTipoRecurso nome= descricao=wewe
-expectError “Descrição inválido!" criarTipoRecurso nome=sdsd descricao=
+expectError "Invalid name (cannot be empty)!" criarTipoRecurso nome= descricao=
+expectError "Invalid name (cannot be empty)!" criarTipoRecurso nome= descricao=wewe
+expectError "Invalid description (cannot be empty)!" criarTipoRecurso nome=sdsd descricao=
 idTR1=criarTipoRecurso nome=teste1 descricao=teste2
 
 #remover tipo de recurso sem atributos
 removerTipoRecurso  idTipoRecurso=${idTR1}
-expectError “Tipo de recurso não encontrado!” removerTipoRecurso  idTipoRecurso=${idTR1}
+expectError "ResourceType not found!" removerTipoRecurso  idTipoRecurso=${idTR1}
 idTR1=criarTipoRecurso  nome=teste1 descricao=teste2
 
 #alterar tipo de recurso
 
-alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’nome’,tipo:’NUMERO’,naoVazio=’true'}}"
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]" 
 
-expectError “Já existe um atributo com esse nome!” addAtributo  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2  atributos=“{{nome=’nome’,tipo:’NUMERO’,naoVazio=’true'},{nome=’nome’,tipo:’NUMERO’,naoVazio=’true'}}"
+expectError "Invalid ResourceTypeAttribute 'name' (must be unique)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2  atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"},{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
 
-expectError “Atributo ‘nome' não pode ser vazio!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’’,tipo:’NUMERO’,naoVazio=’true'}}”
+expectError "Invalid ResourceTypeAttribute 'name' (cannot be empty)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
 
-expectError “Atributo 'tipo' não pode ser vazio!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’sdsds’,tipo:’’,naoVazio=’true'}}”
+expectError "Invalid ResourceTypeAttribute 'type' (cannot be empty)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"\",\"mandatory\":\"true\"}]"
 
-expectError “Atributo 'naoVazio' não pode ser vazio!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’sdsds’,tipo:’TEXTO’,naoVazio=’'}}"
+expectError "Invalid ResourceTypeAttribute 'mandatory' (cannot be empty, must be exactly equal to 'true' or 'false')!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"TEXT\",\"mandatory\":\"\"}]"
 
-alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’nome’,tipo:’NUMERO’,naoVazio=’false'},{nome=’texto’,tipo:’TEXTO’,naoVazio=’true'}}”
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"false\"},{\"name\":\"texto\",\"type\":\"TEXTO\",\"mandatory\":\"true\"}]"
 
-alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’nome’,tipo:’NUMERO’,naoVazio=’true'}}”
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
 
-alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’dia’,tipo:’DATA’,naoVazio=’true'}}"
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"dia\",\"type\":\"DATE\",\"mandatory\":\"true\"}]"
 
 #remover tipo de recurso
 

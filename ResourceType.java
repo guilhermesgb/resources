@@ -1,21 +1,25 @@
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 import com.smartiks.voldemort.core.form.annotations.FormField;
 import com.smartiks.voldemort.core.persistence.dao.Identifiable;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "resourceType", catalog = "", schema = "resources", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }) })
+@Table(name = "resourceType", catalog = "", schema = "resources")
 public class ResourceType implements Identifiable, Serializable{
 
     @Id
@@ -27,19 +31,26 @@ public class ResourceType implements Identifiable, Serializable{
     
     @Basic(optional = false)
     @Column(name = "name", nullable = false)
-    @FormField(name = "Nome", description = "Nome desse Tipo de Recurso", isEditable = true)
+    @FormField(name = "Name", description = "ResourceType name", isEditable = true)
     private String name;
     
     @Basic(optional = false)
     @Column(name = "description", nullable = false)
-    @FormField(name = "Descrição", description = "Descrição desse Tipo de Recurso", isEditable = true)
+    @FormField(name = "Description", description = "ResourceType description", isEditable = true)
     private String description;
+    
+    @Basic(optional = false)
+    @OneToMany(cascade = CascadeType.REMOVE)
+    @JoinColumn(name = "attributes", referencedColumnName = "id", nullable = true)
+    @FormField(name = "Attributes", description = "ResourceType attributes", isEditable = true)
+    private Set<ResourceTypeAttribute> attributes;
 
     protected ResourceType(){}
     
     protected ResourceType(String name, String description){
         this.name = name;
         this.description = description;
+        this.attributes = new HashSet<ResourceTypeAttribute>();
     }
     
     @Override
@@ -68,8 +79,17 @@ public class ResourceType implements Identifiable, Serializable{
     	this.description = description;
     }
     
+    public Set<ResourceTypeAttribute> getAttributes(){
+    	return this.attributes;
+    }
+    
+    public void setAttributes(Set<ResourceTypeAttribute> attributes){
+    	this.attributes = attributes;
+    }
+    
     public String toString(){
-    	return "Nome: " + this.getName() + " - "
-             + "Descr.: " + this.getDescription();
+    	return "Name: " + this.getName() + " - "
+             + "Description: " + this.getDescription() + " - "
+             + "Attributes: " + this.getAttributes().toString();
     }
 }

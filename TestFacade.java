@@ -11,4 +11,8 @@ public class TestFacade {
     	ResourceTypeManager.remove(idTipoRecurso);
     }
     
+    public void alterarTipoRecurso(int idTipoRecurso, String nome, String descricao, String atributos)
+    		throws Exception{
+    	ResourceTypeManager.update(idTipoRecurso, nome, descricao, atributos);
+    }
 }
