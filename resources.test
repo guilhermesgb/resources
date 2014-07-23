@@ -1,0 +1,119 @@
+#### TESTES para RECURSOS ####
+
+#criar tipo de recurso
+expectError “Nome e descrição inválidos!" criarTipoRecurso nome= descricao=
+expectError “Nome inválido!" criarTipoRecurso nome= descricao=wewe
+expectError “Descrição inválido!" criarTipoRecurso nome=sdsd descricao=
+idTR1=criarTipoRecurso nome=teste1 descricao=teste2
+
+#remover tipo de recurso sem atributos
+removerTipoRecurso  idTipoRecurso=${idTR1}
+expectError “Tipo de recurso não encontrado!” removerTipoRecurso  idTipoRecurso=${idTR1}
+idTR1=criarTipoRecurso  nome=teste1 descricao=teste2
+
+#alterar tipo de recurso
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’nome’,tipo:’NUMERO’,naoVazio=’true'}}"
+
+expectError “Já existe um atributo com esse nome!” addAtributo  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2  atributos=“{{nome=’nome’,tipo:’NUMERO’,naoVazio=’true'},{nome=’nome’,tipo:’NUMERO’,naoVazio=’true'}}"
+
+expectError “Atributo ‘nome' não pode ser vazio!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’’,tipo:’NUMERO’,naoVazio=’true'}}”
+
+expectError “Atributo 'tipo' não pode ser vazio!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’sdsds’,tipo:’’,naoVazio=’true'}}”
+
+expectError “Atributo 'naoVazio' não pode ser vazio!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’sdsds’,tipo:’TEXTO’,naoVazio=’'}}"
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’nome’,tipo:’NUMERO’,naoVazio=’false'},{nome=’texto’,tipo:’TEXTO’,naoVazio=’true'}}”
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’nome’,tipo:’NUMERO’,naoVazio=’true'}}”
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’dia’,tipo:’DATA’,naoVazio=’true'}}"
+
+#remover tipo de recurso
+
+removerTipoRecurso  idTipoRecurso={$idTR1}
+expectError “Tipo de recurso não encontrado!” removerTipoRecurso  idTipoRecurso=${idTR1}
+
+##
+#criando recursos e garantindo que não pode remover atributos utilizados
+#testando com o atributo texto
+
+expectError “Tipo de recurso não encontrado!” idR1=criarRecurso  idTipoRecurso=${idTR1} atributos=“{{name=’nome’,value:’teste’}}”
+
+idTR1=criarTipoRecurso  nome=teste1 descricao=teste2
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’texto’,tipo:’TEXTO’,naoVazio=’true'}}”
+
+expectError “Campo ‘texto' não pode ser vazio!” criarRecurso  idTipoRecurso=${idTR1} atributos=“{{nome=’texto’,valor:’’}}”
+
+idR1=criarRecurso  idTipoRecurso={$idTR1} atributos=“{{nome=’texto’,valor:’teste’}}”
+
+expectError “Não pode remover atributo, pois existe um recurso o utilizando!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{}”
+
+removerRecurso  idRecurso=${idR1}
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{}” 
+
+##
+#atributo data
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’data’,valor:’DATA’,naoVazio=’true'}}”
+
+expectError “Valor incorreto! teste não é uma data!“ criarRecurso  idTipoRecurso={$idTR1} atributos=“{{nome=’texto’,valor:’teste’}}”
+
+expectError “Valor incorreto! teste não pode ser vazio“ criarRecurso  idTipoRecurso={$idTR1} atributos=“{{nome=’texto’,valor:’}}”
+
+idR1=criarRecurso  idTipoRecurso={$idTR1} atributos=“{{nome=’texto’,valor:’10/10/2014'}}”
+
+
+expectError “Não pode remover atributo, pois existe um recurso o utilizando!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{}”
+
+removerRecurso  idRecurso=${idR1} 
+
+##
+#atributo número
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’data’,valor:’NUMERO’,naoVazio=’false'}}”
+
+expectError “Valor incorreto! texto não é um número!“ criarRecurso  idTipoRecurso={$idTR1} atributos=“{{nome=’texto’,valor:’teste’}}”
+
+idR1=criarRecurso  idTipoRecurso=${idTR1} atributos=“{{nome=’texto’,valor:’12’}}”
+
+alterarRecurso  idRecurso=${idR1} atributos=“{{nome=’texto’,valor:’’}}”
+
+expectError “Valor incorreto! texto não é um número!“ alterarRecurso  idRecurso=${idR1} atributos=“{{nome=’texto’,valor:’trs’}}”
+
+removerRecurso  idRecurso=${idR1} 
+
+##
+#criando recursos com vários atributos
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’idade’,tipo:’NUMERO’,naoVazio=’true’},{nome=’data’,tipo:’DATA’,naoVazio=’false'},{nome=’nome’,tipo:’TEXTO’,naoVazio=’true'}}”
+
+idR1=criarRecurso  idTipoRecurso=${idTR1} atributos=“{{nome=’idade’,valor:’12’},{nome=’nome’,valor:’joao’},{nome=’data’,valor:’12/12/2013’}}”
+
+#alterar recurso
+
+alterarRecurso  idRecurso=${idR1} atributos=“{{nome=’idade’,valor:’23’},{nome=’nome’,valor:’jose’},{nome=’data’,valor:’13/12/2013’}}”
+
+alterarRecurso  idRecurso=${idR1} atributos=“{{nome=’idade’,valor:’23’},{nome=’nome’,valor:’jose’},{nome=’data’,valor:’’}}”
+
+#alterar com valores incorretos
+
+expectError “Parametro nao encontrado!” criarRecurso  idTipoRecurso=${idTR1} atributos=“{{nome=’idade’,valor:’12’},{nome=’nome’,valor:’joao’},{nome=’data’,valor:’12/12/2013’},{nome=’dataNaoExiste’,valor:’12/12/2013’}}”
+
+expectError “nome não pode ficar vazio” alterarRecurso  idRecurso=${idR1} atributos=“{{nome=’idade’,valor:’23’},{nome=’nome’,valor:’’},{nome=’data’,valor:’13/12/2013’}}”
+
+expectError “nome não pode ficar vazio, idade não pode ficar vazio” alterarRecurso  idRecurso=${idR1} atributos=“{{nome=’idade’,valor:’’},{nome=’nome’,valor:’’},{nome=’data’,valor:’13/12/2013’}}”
+
+expectError “nome não pode ficar vazio, idade não pode ficar vazio, parâmetro faltando” alterarRecurso  idRecurso=${idR1} atributos=“{{nome=’idade’,valor:’’},{nome=’nome’,valor:’’}}”
+
+#remover tipo de recurso utilizado
+
+expectError ”Não pode ser removido, pois está sendo utilizado!“ removerTipoRecurso  idTipoRecurso={$idTR1}
+
+#remover recursos e tipos de recursos
+
+removerRecurso  idRecurso=${idR1}
+removerTipoRecurso  idTipoRecurso={$idTR1}
+
+##########################
