@@ -1,9 +1,9 @@
 #### TESTES para RECURSOS ####
 
 #criar tipo de recurso
-expectError "Invalid name (cannot be empty)!" criarTipoRecurso nome= descricao=
-expectError "Invalid name (cannot be empty)!" criarTipoRecurso nome= descricao=wewe
-expectError "Invalid description (cannot be empty)!" criarTipoRecurso nome=sdsd descricao=
+expectError "Invalid ResourceType name (cannot be empty)!" criarTipoRecurso nome= descricao=
+expectError "Invalid ResourceType name (cannot be empty)!" criarTipoRecurso nome= descricao=wewe
+expectError "Invalid ResourceType description (cannot be null)!" criarTipoRecurso nome=sdsd descricao=
 idTR1=criarTipoRecurso nome=teste1 descricao=teste2
 
 #remover tipo de recurso sem atributos
