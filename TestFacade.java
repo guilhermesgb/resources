@@ -20,4 +20,14 @@ public class TestFacade {
     		throws Exception{
     	return ResourcesManager.createResource(idTipoRecurso, atributos);
     }
+
+    public void removerRecurso(int idRecurso)
+    		throws Exception{
+    	ResourcesManager.removeResource(idRecurso);
+    }
+    
+    public void alterarRecurso(int idRecurso, String atributos)
+    		throws Exception{
+    	ResourcesManager.updateResource(idRecurso, atributos);
+    }
 }

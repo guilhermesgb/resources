@@ -10,6 +10,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -20,6 +22,9 @@ import com.smartiks.voldemort.core.persistence.dao.Identifiable;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "resourceType", catalog = "", schema = "resources")
+@NamedQueries({ @NamedQuery(name = "resourcesUsingResourceType", query = "SELECT r "
+		+ "FROM Resource r "
+		+ "WHERE r.type = :resourceType") })
 public class ResourceType implements Identifiable, Serializable{
 
     @Id

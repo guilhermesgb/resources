@@ -15,13 +15,13 @@ idTR1=criarTipoRecurso  nome=teste1 descricao=teste2
 
 alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]" 
 
-expectError "Invalid ResourceTypeAttribute 'name' (must be unique)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2  atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"},{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
+expectError "Invalid ResourceTypeAttribute property 'name' (must be unique)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2  atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"},{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
 
-expectError "Invalid ResourceTypeAttribute 'name' (cannot be empty)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
+expectError "Invalid ResourceTypeAttribute property 'name' (cannot be empty)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
 
-expectError "Invalid ResourceTypeAttribute 'type' (cannot be empty and must one of 'TEXT', 'NUMBER' or 'DATE')!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"\",\"mandatory\":\"true\"}]"
+expectError "Invalid ResourceTypeAttribute property 'type' (cannot be empty and must one of 'TEXT', 'NUMBER' or 'DATE')!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"\",\"mandatory\":\"true\"}]"
 
-expectError "Invalid ResourceTypeAttribute 'mandatory' (cannot be empty, must be exactly equal to 'true' or 'false')!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"TEXT\",\"mandatory\":\"\"}]"
+expectError "Invalid ResourceTypeAttribute property 'mandatory' (cannot be empty, must be exactly equal to 'true' or 'false')!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"TEXT\",\"mandatory\":\"\"}]"
 
 alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"false\"},{\"name\":\"texto\",\"type\":\"TEXT\",\"mandatory\":\"true\"}]"
 
@@ -47,4 +47,76 @@ expectError "ResourceAttribute 'texto' of type 'TEXT' is mandatory (cannot be nu
 
 idR1=criarRecurso  idTipoRecurso=${idTR1} atributos="{\"texto\":\"teste\"}"
 
-expectError "Não pode remover atributo, pois existe um recurso o utilizando!" alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[]"
+expectError "ResourceAttribute 'texto' of type 'TEXT' cannot be removed, because 1 Resources use it!" alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[]"
+
+removerRecurso  idRecurso=${idR1}
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[]" 
+
+##
+#atributo data
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"data\",\"type\":\"DATE\",\"mandatory\":\"true\"}]"
+
+expectError "Invalid ResourceAttribute 'data' value (is of type 'DATE', so cannot be: 'teste')!" criarRecurso  idTipoRecurso=${idTR1} atributos="{\"data\":\"teste\"}"
+
+expectError "ResourceAttribute 'data' of type 'DATE' is mandatory (cannot be null or empty)!" criarRecurso  idTipoRecurso=${idTR1} atributos="{\"data\":\"\"}"
+
+expectError "ResourceAttribute 'data' of type 'DATE' is mandatory (cannot be null or empty)!" criarRecurso  idTipoRecurso=${idTR1} atributos="{}"
+
+idR1=criarRecurso  idTipoRecurso=${idTR1} atributos="{\"data\":\"10/10/2014\"}"
+
+expectError "ResourceAttribute 'data' of type 'DATE' cannot be removed, because 1 Resources use it!" alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[]"
+
+removerRecurso  idRecurso=${idR1} 
+
+##
+#atributo número
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"data\",\"type\":\"NUMBER\",\"mandatory\":\"false\"}]"
+
+expectError "Invalid ResourceAttribute 'data' value (is of type 'NUMBER', so cannot be: '10/10/2015')!" criarRecurso  idTipoRecurso=${idTR1} atributos="{\"data\":\"10/10/2015\"}"
+
+idR1=criarRecurso  idTipoRecurso=${idTR1} atributos="{\"data\":\"12\"}"
+
+alterarRecurso  idRecurso=${idR1} atributos="{\"data\":\"\"}"
+
+expectError "Invalid ResourceAttribute 'data' value (is of type 'NUMBER', so cannot be: 'texto')!" alterarRecurso  idRecurso=${idR1} atributos="{\"data\":\"texto\"}"
+
+removerRecurso  idRecurso=${idR1}
+
+##
+#criando recursos com vários atributos
+
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"idade\",\"type\":\"NUMBER\",\"mandatory\":\"true\"},{\"name\":\"data\",\"type\":\"DATE\",\"mandatory\":\"false\"},{\"name\":\"nome\",\"type\":\"TEXT\",\"mandatory\":\"true\"}]"
+
+idR1=criarRecurso  idTipoRecurso=${idTR1} atributos="{\"idade\":\"12\", \"nome\":\"joao\", \"data\":\"12/12/2013\"}"
+
+#alterar recurso
+
+alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"23\", \"nome\":\"jose\", \"data\":\"13/12/2013\"}"
+
+alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"23\", \"nome\":\"jose\", \"data\":\"\"}"
+
+#alterar com valores incorretos
+
+expectError "Resource 'teste1' has no attribute named 'dataNaoExiste' (whose value would be: '12/12/2013')!" criarRecurso  idTipoRecurso=${idTR1} atributos="{\"idade\":\"12\",\"nome\":\"joao\",\"data\":\"12/12/2013\",\"dataNaoExiste\":\"12/12/2013\"}"
+
+expectError "ResourceAttribute 'nome' of type 'TEXT' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"23\",\"nome\":\"\",\"data\":\"13/12/2013\"}"
+
+expectError "ResourceAttribute 'nome' of type 'TEXT' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"23\",\"nome\":\"joao\",\"data\":\"13/12/2013\"}"
+
+expectError "ResourceAttribute 'idade' of type 'NUMBER' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"23\",\"nome\":\"joao\",\"data\":\"13/12/2013\"}"
+
+expectError "ResourceAttribute 'idade' of type 'NUMBER' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"\",\"nome\":\"\"}"
+
+#remover tipo de recurso utilizado
+
+expectError "ResourceType 'teste1' cannot be removed, because there are Resources using it!" removerTipoRecurso  idTipoRecurso=${idTR1}
+
+#remover recursos e tipos de recursos
+
+removerRecurso  idRecurso=${idR1}
+removerTipoRecurso  idTipoRecurso=${idTR1}
+
+##########################

@@ -1,13 +1,13 @@
 import java.io.Serializable;
 
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -39,7 +39,7 @@ public class ResourceAttribute implements Identifiable, Serializable{
     private ResourceTypeAttribute metadata;
     
     @Basic(optional = false)
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "owner", referencedColumnName = "id", nullable = false)
     @FormField(name = "owner", description = "Resource that owns this Resource attribute", isEditable = false)
     private Resource owner;

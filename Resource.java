@@ -76,6 +76,6 @@ public class Resource implements Identifiable, Serializable{
 	}
 	
     public String toString(){
-    	return "Type: [" + this.getType() + "]";
+    	return "Type: [ID: " + this.getType().getId() + " - " + this.getType() + "]";
     }
 }

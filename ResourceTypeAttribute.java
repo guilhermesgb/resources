@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -15,6 +17,10 @@ import com.smartiks.voldemort.core.persistence.dao.Identifiable;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "resourceTypeAttribute", catalog = "", schema = "resources")
+@NamedQueries({ @NamedQuery(name = "resourcesUsingAttribute", query = "SELECT r "
+		+ "FROM Resource r, ResourceAttribute ra "
+		+ "WHERE ra.metadata = :attributeMetadata "
+		+ "AND ra.owner = r") })
 public class ResourceTypeAttribute implements Identifiable, Serializable{
 	
     @Id
@@ -79,6 +85,22 @@ public class ResourceTypeAttribute implements Identifiable, Serializable{
     
     public void setMandatory(Boolean mandatory){
     	this.mandatory = mandatory;
+    }
+    
+    @Override
+    public boolean equals(Object other){
+    	boolean result = false;
+    	if ( other instanceof ResourceTypeAttribute ){
+    		ResourceTypeAttribute that = (ResourceTypeAttribute) other;
+    		result = this.getType().equals(that.getType())
+                && this.isMandatory().equals(that.isMandatory());
+    	}
+		return result;
+    }
+    
+    @Override
+    public int hashCode(){
+    	return ( 41 * (41 + this.getType().hashCode()) + this.isMandatory().hashCode());
     }
     
     public String toString(){
