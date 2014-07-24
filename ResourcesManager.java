@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 
 import json.JsonArray;
 import json.JsonObject;
@@ -95,17 +96,33 @@ public class ResourcesManager {
     		__attributes.add(__attribute);
     	}
     	
-    	for ( ResourceTypeAttribute attribute : resourceType.getAttributes() ){
-    		(new DAO(entityManager)).remove(attribute);
+    	EntityTransaction transaction = entityManager.getTransaction();
+    	transaction.begin();
+    	DAO dataAccess = new DAO(entityManager);
+    	try {
+	    	for ( ResourceTypeAttribute attribute : resourceType.getAttributes() ){
+	    		dataAccess.remove(attribute);
+	            logger.info("Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
+	                    " was removed successfully; details: " + attribute.toString());
+	    	}
+	    	for ( ResourceTypeAttribute attribute : __attributes ){
+	    		dataAccess.insert(attribute);
+	            logger.info("Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
+	                    " was created successfully; details: " + attribute.toString());
+	    	}
+	    	
+	    	resourceType.setAttributes(__attributes);
+	    	dataAccess.update(resourceType);
+	        logger.info("Object of class " + resourceType.getClass() + " (ID " + resourceType.getId() + ")" +
+	                " was updated successfully; details: " + resourceType.toString());
+
+	        transaction.commit();
+    	} catch (RuntimeException e){
+    		if ( transaction.isActive() ){
+    			transaction.setRollbackOnly();
+    			throw new ResourcesException(ResourcesExceptionType.RESOURCE_TYPE_UPDATE_FAILED);
+    		}
     	}
-    	for ( ResourceTypeAttribute attribute : __attributes ){
-    		(new DAO(entityManager)).insert(attribute);
-    	}
-    	
-    	resourceType.setAttributes(__attributes);
-    	(new DAO(entityManager)).update(resourceType);
-        logger.info("Object of class " + resourceType.getClass() + " (ID " + resourceType.getId() + ")" +
-                " was updated successfully; details: " + resourceType.toString());
     }
 
     public static Integer createResource(Integer id, String values)
@@ -120,48 +137,68 @@ public class ResourcesManager {
 
     	for ( ResourceTypeAttribute attribute : attributes ){
 
-    		String value = _values.get(attribute.getName()).asString().trim();
+    		JsonValue value = _values.get(attribute.getName());
+    		String _value = null;
+    		if ( value != null ){
+    			_value = value.asString().trim();
+    		}
+    		
 
-    		if ( ( value == null || value.isEmpty() ) && attribute.isMandatory() ){
+    		if ( ( _value == null || _value.isEmpty() ) && attribute.isMandatory() ){
     			throw new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
     					attribute.getName(), attribute.getType());
     		}
 
     		ResourceAttribute _attribute;
-    		if ( value == null ){
-    			_attribute = new ResourceAttribute(null, attribute, resource);
+    		if ( _value == null ){
+    			_attribute = new ResourceAttribute("", attribute, resource);
     		}
     		else if ( attribute.getType().equals("DATE") ){
 				try {
-					DateFormat.getDateInstance().parse(value);
-					_attribute = new ResourceAttribute(value, attribute, resource);
+					DateFormat.getDateInstance().parse(_value);
+					_attribute = new ResourceAttribute(_value, attribute, resource);
 				} catch (ParseException e) {
 	    			throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
-	    					attribute.getName(), attribute.getType(), value);
+	    					attribute.getName(), attribute.getType(), _value);
 				}
     		}
     		else if ( attribute.getType().equals("NUMBER") ){
     			try {
-    				Double.valueOf(value);
-    				_attribute = new ResourceAttribute(value, attribute, resource);
+    				Double.valueOf(_value);
+    				_attribute = new ResourceAttribute(_value, attribute, resource);
     			} catch (NumberFormatException e) {
 	    			throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
-	    					attribute.getName(), attribute.getType(), value);
+	    					attribute.getName(), attribute.getType(), _value);
     			}
     		}
     		else{
-    			_attribute = new ResourceAttribute(value, attribute, resource);
+    			_attribute = new ResourceAttribute(_value, attribute, resource);
     		}
     		ValidationManager.getInstance().validate(_attribute);
     		_attributes.add(_attribute);
     	}
-    	
-    	(new DAO(entityManager)).insert(resource);
-    	
-    	for ( ResourceAttribute attribute : _attributes ){
-    		(new DAO(entityManager)).insert(attribute);
+
+    	EntityTransaction transaction = entityManager.getTransaction();
+    	transaction.begin();
+    	DAO dataAccess = new DAO(entityManager);
+    	try {
+	    	dataAccess.insert(resource);
+	    	logger.info("Object of class " + resource.getClass() + " (ID " + resource.getId() + ")" +
+	    			" was created successfully; details: " + resource.toString());
+	    	
+	    	for ( ResourceAttribute attribute : _attributes ){
+	    		dataAccess.insert(attribute);
+	        	logger.info("Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
+	        			" was created successfully; details: " + attribute.toString());
+	    	}
+	    	transaction.commit();
     	}
-    	
+	    catch (RuntimeException e){
+	    	if ( transaction.isActive() ){
+	    		transaction.setRollbackOnly();
+    			throw new ResourcesException(ResourcesExceptionType.RESOURCE_CREATION_FAILED);
+	    	}
+	    }
     	return resource.getId();
     }
     
@@ -178,11 +215,37 @@ public class ResourcesManager {
     	}
 		return resourceType;
 	}
+
+    private static Resource findResource(Integer id) throws ResourcesException {
+		Resource resource;
+    	try{
+    		resource= (new DAO(entityManager)).find(Resource.class, id);
+    		if ( resource== null ){
+        		throw new IllegalArgumentException();
+    		}
+    	}
+    	catch ( IllegalArgumentException e ){
+    		throw new ResourcesException(ResourcesExceptionType.RESOURCE_NOT_FOUND);
+    	}
+		return resource;
+	}
     
     public static void main(String[] args) throws Exception{
     	int id1 = ResourcesManager.createResourceType("TR1", "desc1");
+    	logger.info("Operation done");
     	int id2 = ResourcesManager.createResourceType("TR2", "desc2");
-    	ResourcesManager.updateResourceType(id1, "TR1 (updated)", "description1", "[{\"name\":\"att1\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]");
+    	logger.info("Operation done");
+    	ResourcesManager.updateResourceType(id1, "TR1 (updated)", "description1", "[{\"name\":\"att1\",\"type\":\"NUMBER\",\"mandatory\":\"false\"}]");
+    	logger.info("Operation done");
     	ResourcesManager.updateResourceType(id2, "TR2 (updated)", "description2", "[{\"name\":\"anotherAtt\",\"type\":\"DATE\",\"mandatory\":\"false\"}]");
+    	logger.info("Operation done");
+    	int id3 = ResourcesManager.createResource(id1, "{\"att2\":\"10\"}");
+    	Resource r1 = findResource(id3);
+    	logger.info("Resource " + r1.getId() + " has attrs: " + r1.getAttributes(entityManager).toString());
+    	logger.info("Operation done");
+    	int id4 = ResourcesManager.createResource(id1, "{\"att1\":\"10\"}");
+    	Resource r2 = findResource(id4);
+    	logger.info("Resource " + r2.getId() + " has attrs: " + r2.getAttributes(entityManager).toString());
+    	logger.info("Operation done");
     }
 }

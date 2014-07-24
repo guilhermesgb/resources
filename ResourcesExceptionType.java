@@ -9,7 +9,10 @@ public enum ResourcesExceptionType{
 	INVALID_ATTRIBUTE_IS_MANDATORY("Invalid ResourceTypeAttribute 'mandatory' (cannot be empty, must be exactly equal to 'true' or 'false')!"),
 	ATTRIBUTE_NAME_MUST_BE_UNIQUE("Invalid ResourceTypeAttribute 'name' (must be unique)!"),
 	MANDATORY_ATTRIBUTE_OMMITED("ResourceAttribute '%s' of type '%s' is mandatory (cannot be null or empty)!"),
-	INVALID_VALUE("Invalid ResourceAttribute '%s' of type '%s' value (cannot have this value: '%s')!");
+	INVALID_VALUE("Invalid ResourceAttribute '%s' value (is of type '%s', so cannot be: '%s')!"),
+	RESOURCE_TYPE_UPDATE_FAILED("Update of ResourceType failed!"),
+	RESOURCE_CREATION_FAILED("Creation of Resource failed!"),
+	RESOURCE_NOT_FOUND("Resource not found!");
 
 	public String message;
 	ResourcesExceptionType(String message){

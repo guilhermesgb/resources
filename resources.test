@@ -19,11 +19,11 @@ expectError "Invalid ResourceTypeAttribute 'name' (must be unique)!" alterarTipo
 
 expectError "Invalid ResourceTypeAttribute 'name' (cannot be empty)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
 
-expectError "Invalid ResourceTypeAttribute 'type' (cannot be empty)!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"\",\"mandatory\":\"true\"}]"
+expectError "Invalid ResourceTypeAttribute 'type' (cannot be empty and must one of 'TEXT', 'NUMBER' or 'DATE')!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"\",\"mandatory\":\"true\"}]"
 
 expectError "Invalid ResourceTypeAttribute 'mandatory' (cannot be empty, must be exactly equal to 'true' or 'false')!" alterarTipoRecurso idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"sdsds\",\"type\":\"TEXT\",\"mandatory\":\"\"}]"
 
-alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"false\"},{\"name\":\"texto\",\"type\":\"TEXTO\",\"mandatory\":\"true\"}]"
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"false\"},{\"name\":\"texto\",\"type\":\"TEXT\",\"mandatory\":\"true\"}]"
 
 alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"nome\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]"
 
@@ -41,11 +41,11 @@ expectError "ResourceType not found!" removerTipoRecurso  idTipoRecurso=${idTR1}
 expectError "ResourceType not found!" idR1=criarRecurso  idTipoRecurso=${idTR1} atributos="{\"texto\":\"teste\"}"
 
 idTR1=criarTipoRecurso  nome=teste1 descricao=teste2
-alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"texto\",\"type\":\"TEXTO\",\"mandatory\":\"true\"}]"
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"texto\",\"type\":\"TEXT\",\"mandatory\":\"true\"}]"
 
-expectError "Campo ‘texto' não pode ser vazio!" criarRecurso  idTipoRecurso=${idTR1} atributos="{\"texto\":\"\"}"
+expectError "ResourceAttribute 'texto' of type 'TEXT' is mandatory (cannot be null or empty)!" criarRecurso  idTipoRecurso=${idTR1} atributos="{\"texto\":\"\"}"
 
-idR1=criarRecurso  idTipoRecurso={$idTR1} atributos="{\"texto\":\"teste\"}"
+idR1=criarRecurso  idTipoRecurso=${idTR1} atributos="{\"texto\":\"teste\"}"
 
 expectError “Não pode remover atributo, pois existe um recurso o utilizando!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{}”
 

@@ -8,14 +8,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 import com.smartiks.voldemort.core.form.annotations.FormField;
+import com.smartiks.voldemort.core.persistence.dao.Identifiable;
 
 @SuppressWarnings("serial")
 @Entity
-@Table(name = "resourceTypeAttribute", catalog = "", schema = "resources", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }) })
-public class ResourceTypeAttribute implements Serializable{
+@Table(name = "resourceTypeAttribute", catalog = "", schema = "resources")
+public class ResourceTypeAttribute implements Identifiable, Serializable{
 	
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="rtaSequence")
@@ -46,6 +46,16 @@ public class ResourceTypeAttribute implements Serializable{
     	this.type = type;
     	this.mandatory = mandatory;
     }
+
+	@Override
+	public Integer getId() {
+		return this.id;
+	}
+
+	@Override
+	public void setId(Integer id) {
+		this.id = id;
+	}
     
     public String getName(){
     	return this.name;

@@ -1,3 +1,5 @@
+import java.io.Serializable;
+
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -11,10 +13,12 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 import com.smartiks.voldemort.core.form.annotations.FormField;
+import com.smartiks.voldemort.core.persistence.dao.Identifiable;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "resourceAttribute", catalog = "", schema = "resources")
-public class ResourceAttribute {
+public class ResourceAttribute implements Identifiable, Serializable{
     
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="raSequence")
@@ -24,7 +28,7 @@ public class ResourceAttribute {
     private Integer id;
 	
     @Basic(optional = false)
-    @Column(name = "value", nullable = true)
+    @Column(name = "value", nullable = false)
     @FormField(name = "value", description = "Resource attribute value", isEditable = true)
     private String value;
     
@@ -48,6 +52,16 @@ public class ResourceAttribute {
     	this.owner = owner;
     }
 
+    @Override
+    public Integer getId(){
+    	return this.id;
+    }
+    
+    @Override
+    public void setId(Integer id){
+    	this.id = id;
+    }
+    
     public String getValue(){
     	return this.value;
     }
@@ -65,8 +79,9 @@ public class ResourceAttribute {
     }
     
     public String toString(){
-    	return "Value: " + this.getValue() + " - "
-             + "Metadata: " + this.getMetadata() + " - "
-             + "Owner: " + this.getOwner();
+    	return "Attribute: [" + this.getMetadata() + "] - "
+             + "Value: " + this.getValue() + " - "
+             + "ResourceID: [" + this.getOwner().getId()
+             + "/" + this.getOwner().getType().getName() + "]";
     }
 }
