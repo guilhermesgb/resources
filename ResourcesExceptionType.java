@@ -1,8 +1,8 @@
 
 public enum ResourcesExceptionType{
 
-	INVALID_NAME("Invalid name (cannot be empty)!"),
-	INVALID_DESCRIPTION("Invalid description (cannot be empty)!"),
+	INVALID_RESOURCE_TYPE_NAME("Invalid ResourceType name (cannot be empty)!"),
+	INVALID_RESOURCE_TYPE_DESCRIPTION("Invalid ResourceType description (cannot be null)!"),
 	RESOURCE_TYPE_NOT_FOUND("ResourceType not found!"),
 	INVALID_ATTRIBUTE_NAME("Invalid ResourceTypeAttribute property 'name' (cannot be empty)!"),
 	INVALID_ATTRIBUTE_TYPE("Invalid ResourceTypeAttribute property 'type' (cannot be empty and must one of 'TEXT', 'NUMBER' or 'DATE')!"),
