@@ -47,7 +47,7 @@ expectError "ResourceAttribute 'texto' of type 'TEXT' is mandatory (cannot be nu
 
 idR1=criarRecurso  idTipoRecurso=${idTR1} atributos="{\"texto\":\"teste\"}"
 
-expectError “Não pode remover atributo, pois existe um recurso o utilizando!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{}”
+expectError "Não pode remover atributo, pois existe um recurso o utilizando!" alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[]"
 
 removerRecurso  idRecurso=${idR1}
 

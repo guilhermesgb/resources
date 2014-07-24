@@ -96,6 +96,20 @@ public class ResourcesManager {
     		__attributes.add(__attribute);
     	}
     	
+    	/**
+    	 * Have to be smarter here - detect which attributes are being updated vs. removed vs. left unchanged so that:
+    	 * 
+    	 * - for the ones that are being left unchanged, do nothing (don't waste time removing + inserting them back again)
+    	 * - for the ones that are being removed, only allow it (raise error) if there's no Resource that has that attribute
+    	 * - for the ones that are being updated:
+    	 *     :: if the name is the only thing being updated, that's ok
+    	 *     :: but if the type/mandatory is being updated, don't allow it (raise error) if there's at least one Resource that has that attribute
+    	 * 
+    	 * IF THERE'S AT LEAST ONE ERROR, ROLLBACK TRANSACTION
+    	 * 
+    	 * I'm guessing easier to do using two HashMaps, one for each Set of ResourceTypeAttributes (old vs new) then checking the cases and performing accordingly
+    	 */
+    	
     	EntityTransaction transaction = entityManager.getTransaction();
     	transaction.begin();
     	DAO dataAccess = new DAO(entityManager);
