@@ -15,7 +15,7 @@ import com.smartiks.voldemort.core.persistence.dao.DAO;
 import com.smartiks.voldemort.core.validator.ValidationException;
 import com.smartiks.voldemort.core.validator.ValidationManager;
 
-public class ResourceTypeManager {
+public class ResourcesManager {
 
 	private static Logger logger = Logger.getLogger(ResourceType.class.getName());
 	private static EntityManager entityManager = new DefaultEntityManagerProvider("resources")
@@ -120,9 +120,9 @@ public class ResourceTypeManager {
 	}
     
     public static void main(String[] args) throws Exception{
-    	int id1 = ResourceTypeManager.create("TR1", "desc1");
-    	int id2 = ResourceTypeManager.create("TR2", "desc2");
-    	ResourceTypeManager.update(id1, "TR1 (updated)", "description1", "[{\"name\":\"att1\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]");
-    	ResourceTypeManager.update(id2, "TR2 (updated)", "description2", "[{\"name\":\"anotherAtt\",\"type\":\"DATE\",\"mandatory\":\"false\"}]");
+    	int id1 = ResourcesManager.create("TR1", "desc1");
+    	int id2 = ResourcesManager.create("TR2", "desc2");
+    	ResourcesManager.update(id1, "TR1 (updated)", "description1", "[{\"name\":\"att1\",\"type\":\"NUMBER\",\"mandatory\":\"true\"}]");
+    	ResourcesManager.update(id2, "TR2 (updated)", "description2", "[{\"name\":\"anotherAtt\",\"type\":\"DATE\",\"mandatory\":\"false\"}]");
     }
 }

@@ -7,7 +7,7 @@
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		<properties>
 			<property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
-			<property name="javax.persistence.jdbc.url" value="jdbc:h2:mem;INIT=create schema if not exists resources\;create sequence if not exists resourceTypeSequence start with 0;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE"/>
+			<property name="javax.persistence.jdbc.url" value="jdbc:h2:mem;INIT=create schema if not exists resources\;create sequence if not exists rtSequence start with 0\;create sequence if not exists rSequence start with 0\;create sequence if not exists rtaSequence start with 0\;create sequence if not exists raSequence start with 0;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE"/>
 			<property name="javax.persistence.jdbc.user" value="sa"/>
 			<property name="javax.persistence.jdbc.password" value=""/>
 			<property name="javax.persistence.validation.mode" value="none"/>

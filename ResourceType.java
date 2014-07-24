@@ -23,26 +23,26 @@ import com.smartiks.voldemort.core.persistence.dao.Identifiable;
 public class ResourceType implements Identifiable, Serializable{
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="resourceTypeSequence")
-    @SequenceGenerator(name="resourceTypeSequence", sequenceName="resourceTypeSequence", allocationSize=0)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="rtSequence")
+    @SequenceGenerator(name="rtSequence", sequenceName="rtSequence", allocationSize=0)
     @Basic(optional = false)
     @Column(name = "id", nullable = false)
     private Integer id;
     
     @Basic(optional = false)
     @Column(name = "name", nullable = false)
-    @FormField(name = "Name", description = "ResourceType name", isEditable = true)
+    @FormField(name = "Name", description = "Name of the Resource type", isEditable = true)
     private String name;
     
     @Basic(optional = false)
     @Column(name = "description", nullable = false)
-    @FormField(name = "Description", description = "ResourceType description", isEditable = true)
+    @FormField(name = "Description", description = "Description of the Resource type", isEditable = true)
     private String description;
     
     @Basic(optional = false)
     @OneToMany(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "attributes", referencedColumnName = "id", nullable = true)
-    @FormField(name = "Attributes", description = "ResourceType attributes", isEditable = true)
+    @FormField(name = "Attributes", description = "Attributes of the Resource type", isEditable = true)
     private Set<ResourceTypeAttribute> attributes;
 
     protected ResourceType(){}
