@@ -26,7 +26,7 @@ public class ResourceAttribute {
     @Basic(optional = false)
     @Column(name = "value", nullable = true)
     @FormField(name = "value", description = "Resource attribute value", isEditable = true)
-    private Byte[] value;
+    private String value;
     
     @Basic(optional = false)
     @OneToOne
@@ -42,17 +42,17 @@ public class ResourceAttribute {
     
     protected ResourceAttribute(){}
     
-    protected ResourceAttribute(Byte[] value, ResourceTypeAttribute metadata, Resource owner){
+    protected ResourceAttribute(String value, ResourceTypeAttribute metadata, Resource owner){
     	this.value = value;
     	this.metadata = metadata;
     	this.owner = owner;
     }
 
-    public Byte[] getValue(){
+    public String getValue(){
     	return this.value;
     }
     
-    public void setValue(Byte[] value){
+    public void setValue(String value){
     	this.value = value;
     }
     

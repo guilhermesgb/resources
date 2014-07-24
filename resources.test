@@ -38,14 +38,14 @@ expectError "ResourceType not found!" removerTipoRecurso  idTipoRecurso=${idTR1}
 #criando recursos e garantindo que não pode remover atributos utilizados
 #testando com o atributo texto
 
-expectError “Tipo de recurso não encontrado!” idR1=criarRecurso  idTipoRecurso=${idTR1} atributos=“{{name=’nome’,value:’teste’}}”
+expectError "ResourceType not found!" idR1=criarRecurso  idTipoRecurso=${idTR1} atributos="{\"texto\":\"teste\"}"
 
 idTR1=criarTipoRecurso  nome=teste1 descricao=teste2
-alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{{nome=’texto’,tipo:’TEXTO’,naoVazio=’true'}}”
+alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos="[{\"name\":\"texto\",\"type\":\"TEXTO\",\"mandatory\":\"true\"}]"
 
-expectError “Campo ‘texto' não pode ser vazio!” criarRecurso  idTipoRecurso=${idTR1} atributos=“{{nome=’texto’,valor:’’}}”
+expectError "Campo ‘texto' não pode ser vazio!" criarRecurso  idTipoRecurso=${idTR1} atributos="{\"texto\":\"\"}"
 
-idR1=criarRecurso  idTipoRecurso={$idTR1} atributos=“{{nome=’texto’,valor:’teste’}}”
+idR1=criarRecurso  idTipoRecurso={$idTR1} atributos="{\"texto\":\"teste\"}"
 
 expectError “Não pode remover atributo, pois existe um recurso o utilizando!” alterarTipoRecurso  idTipoRecurso=${idTR1} nome=teste1 descricao=teste2 atributos=“{}”
 
