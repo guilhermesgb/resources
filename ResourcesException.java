@@ -8,20 +8,20 @@ public class ResourcesException extends Exception{
 	private static Logger logger = Logger.getLogger(ResourceType.class.getName());
 	private static ResourcesException peak = null;
 
-	private ResourcesException next;
+	private ResourcesException previous;
 	protected ResourcesExceptionType type;
 	
 	protected ResourcesException(ResourcesExceptionType type){
 	    super(type.message);
 	    this.type = type;
-	    this.next = peak;
+	    this.previous = peak;
 	    peak = this;
 	}
 	
 	protected ResourcesException(ResourcesExceptionType type, Object... params){
 		super(String.format(type.message, params));
 		this.type = type;
-	    this.next = peak;
+	    this.previous = peak;
 	    peak = this;
 	}
 	
@@ -40,12 +40,12 @@ public class ResourcesException extends Exception{
 		logger.log(Level.WARNING, String.format(type.message, params));
 	}
 	
-	public boolean hasNext(){
-		return this.next != null;
+	public boolean hasPrevious(){
+		return this.previous != null;
 	}
 	
-	public ResourcesException next(){
-		return this.next;
+	public ResourcesException previous(){
+		return this.previous;
 	}
 
 	public static void throwExceptionsFound() throws ResourcesException {

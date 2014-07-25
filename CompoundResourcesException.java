@@ -17,8 +17,8 @@ public class CompoundResourcesException extends Exception{
 		types.add(last.getType());
 
 		ResourcesException current = last;
-		while ( current.hasNext() ){
-			current = current.next();
+		while ( current.hasPrevious() ){
+			current = current.previous();
 			messages.add(current.getMessage());
 			types.add(current.getType());
 		}
