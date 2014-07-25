@@ -54,19 +54,19 @@ public class ResourceTypeAttribute implements Identifiable, Serializable{
 
     	String name = data.get("name").asString();
 		if ( name == null || name.trim().isEmpty() ){
-			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_NAME);
+			new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_NAME);
 		}
 		
 		String type = data.get("type").asString().trim();
 		if ( type == null || type.isEmpty() || !(type.equals("TEXT") ||
 				type.equals("NUMBER") || type.equals("DATE")) ){
-			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_TYPE);
+			new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_TYPE);
 		}
 
 		String mandatory = data.get("mandatory").asString();
 		if ( mandatory == null || mandatory.trim().isEmpty()
 				|| !(mandatory.equals("true") || mandatory.equals("false")) ){
-			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_IS_MANDATORY);
+			new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_IS_MANDATORY);
 		}
     	this.name = name;
     	this.type = type;

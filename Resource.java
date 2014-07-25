@@ -26,7 +26,7 @@ import com.smartiks.voldemort.core.persistence.dao.Identifiable;
 @SuppressWarnings("serial")
 @Entity
 @Table(name = "resource", catalog = "", schema = "resources")
-@NamedQueries({ @NamedQuery(name = "findResourceAttributes", query = "SELECT ra FROM ResourceAttribute ra WHERE ra.owner = :resource") })
+@NamedQueries({ @NamedQuery(name = "findResourceAttributes", query = "SELECT DISTINCT ra FROM ResourceAttribute ra WHERE ra.owner = :resource") })
 public class Resource implements Identifiable, Serializable{
 
     @Id

@@ -1,7 +1,7 @@
 #### TESTES para RECURSOS ####
 
 #criar tipo de recurso
-expectError "Invalid ResourceType name (cannot be empty)!" criarTipoRecurso nome= descricao=
+expectError "Invalid ResourceType description (cannot be null), Invalid ResourceType name (cannot be empty)!" criarTipoRecurso nome= descricao=
 expectError "Invalid ResourceType name (cannot be empty)!" criarTipoRecurso nome= descricao=wewe
 expectError "Invalid ResourceType description (cannot be null)!" criarTipoRecurso nome=sdsd descricao=
 idTR1=criarTipoRecurso nome=teste1 descricao=teste2
@@ -106,9 +106,9 @@ expectError "ResourceAttribute 'nome' of type 'TEXT' is mandatory (cannot be nul
 
 expectError "ResourceAttribute 'nome' of type 'TEXT' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"23\",\"nome\":\"\",\"data\":\"\"}"
 
-expectError "ResourceAttribute 'idade' of type 'NUMBER' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"\",\"nome\":\"\",\"data\":\"13/12/2013\"}"
+expectError "ResourceAttribute 'idade' of type 'NUMBER' is mandatory (cannot be null or empty), ResourceAttribute 'nome' of type 'TEXT' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"\",\"nome\":\"\",\"data\":\"13/12/2013\"}"
 
-expectError "ResourceAttribute 'idade' of type 'NUMBER' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"\",\"nome\":\"\"}"
+expectError "ResourceAttribute 'idade' of type 'NUMBER' is mandatory (cannot be null or empty), ResourceAttribute 'nome' of type 'TEXT' is mandatory (cannot be null or empty)!" alterarRecurso  idRecurso=${idR1} atributos="{\"idade\":\"\",\"nome\":\"\"}"
 
 #remover tipo de recurso utilizado
 

@@ -51,7 +51,7 @@ public class ResourceAttribute implements Identifiable, Serializable{
     		throws ResourcesException{
 
 		if ( ( value == null || value.isEmpty() ) && metadata.isMandatory() ){
-			throw new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
+			new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
 					metadata.getName(), metadata.getType());
 		}
 
@@ -60,7 +60,7 @@ public class ResourceAttribute implements Identifiable, Serializable{
 		}
 		else if ( metadata.getType().equals("DATE") ){
 			if ( !DateFormatter.getInstance().isCorrectDateFormat(value) ){
-				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
+				new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
     					metadata.getName(), metadata.getType(), value);
 			}
 		}
@@ -68,7 +68,7 @@ public class ResourceAttribute implements Identifiable, Serializable{
 			try {
 				Double.valueOf(value);
 			} catch (NumberFormatException e) {
-				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
+				new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
     					metadata.getName(), metadata.getType(), value);
 			}
 		}
@@ -101,7 +101,7 @@ public class ResourceAttribute implements Identifiable, Serializable{
     	    throws ResourcesException{
 
     	if ( ( value == null || value.isEmpty() ) && this.getMetadata().isMandatory() ){
-			throw new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
+    		new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
 					this.getMetadata().getName(), this.getMetadata().getType());
 		}
 
@@ -110,7 +110,7 @@ public class ResourceAttribute implements Identifiable, Serializable{
 		}
 		else if ( this.getMetadata().getType().equals("DATE") ){
 			if ( !DateFormatter.getInstance().isCorrectDateFormat(value) ){
-				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
+				new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
     					this.getMetadata().getName(), this.getMetadata().getType(), value);
 			}
 		}
@@ -118,7 +118,7 @@ public class ResourceAttribute implements Identifiable, Serializable{
 			try {
 				Double.valueOf(value);
 			} catch (NumberFormatException e) {
-				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
+				new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
     					this.getMetadata().getName(), this.getMetadata().getType(), value);
 			}
 		}

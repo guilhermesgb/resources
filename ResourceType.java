@@ -56,11 +56,12 @@ public class ResourceType implements Identifiable, Serializable{
     		throws ResourcesException{
 
     	if ( name == null || name.trim().isEmpty() ){
-            throw new ResourcesException(ResourcesExceptionType.INVALID_RESOURCE_TYPE_NAME);
+            new ResourcesException(ResourcesExceptionType.INVALID_RESOURCE_TYPE_NAME);
         }
-        else if ( description == null ){
-            throw new ResourcesException(ResourcesExceptionType.INVALID_RESOURCE_TYPE_DESCRIPTION);
+        if ( description == null ){
+            new ResourcesException(ResourcesExceptionType.INVALID_RESOURCE_TYPE_DESCRIPTION);
         }
+        ResourcesException.throwExceptionsFound();
     	this.name = name;
         this.description = description;
         this.attributes = new HashSet<ResourceTypeAttribute>();

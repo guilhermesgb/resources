@@ -18,7 +18,8 @@ public enum ResourcesExceptionType{
 	ATTRIBUTE_CANNOT_BE_REMOVED("ResourceAttribute '%s' of type '%s' cannot be removed, because %d Resources use it!"),
 	ATTRIBUTE_CANNOT_BE_UPDATED("ResourceAttribute '%s' of type '%s' cannot be updated, because %d Resources use it!"),
 	RESOURCE_TYPE_IN_USE("ResourceType '%s' cannot be removed, because there are Resources using it!"),
-	UNKNOWN_ATTRIBUTE("Resource '%s' has no attribute named '%s' (whose value would be: '%s')!");
+	UNKNOWN_ATTRIBUTE("Resource '%s' has no attribute named '%s' (whose value would be: '%s')!"),
+	METHOD_EXECUTION_PROBLEM("A unexpected error happened while executing method '%s': '%s'");
 	
 	public String message;
 	ResourcesExceptionType(String message){
