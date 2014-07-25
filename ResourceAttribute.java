@@ -14,6 +14,7 @@ import javax.persistence.Table;
 
 import com.smartiks.voldemort.core.form.annotations.FormField;
 import com.smartiks.voldemort.core.persistence.dao.Identifiable;
+import com.smartiks.voldemort.core.util.time.DateFormatter;
 
 @SuppressWarnings("serial")
 @Entity
@@ -46,6 +47,36 @@ public class ResourceAttribute implements Identifiable, Serializable{
     
     protected ResourceAttribute(){}
     
+    protected ResourceAttribute(Resource owner, ResourceTypeAttribute metadata, String value)
+    		throws ResourcesException{
+
+		if ( ( value == null || value.isEmpty() ) && metadata.isMandatory() ){
+			throw new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
+					metadata.getName(), metadata.getType());
+		}
+
+		if ( value == null || value.isEmpty() ){
+			value = "";
+		}
+		else if ( metadata.getType().equals("DATE") ){
+			if ( !DateFormatter.getInstance().isCorrectDateFormat(value) ){
+				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
+    					metadata.getName(), metadata.getType(), value);
+			}
+		}
+		else if ( metadata.getType().equals("NUMBER") ){
+			try {
+				Double.valueOf(value);
+			} catch (NumberFormatException e) {
+				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
+    					metadata.getName(), metadata.getType(), value);
+			}
+		}
+		this.owner = owner;
+		this.metadata = metadata;
+    	this.value = value;
+    }
+    
     protected ResourceAttribute(String value, ResourceTypeAttribute metadata, Resource owner){
     	this.value = value;
     	this.metadata = metadata;
@@ -66,7 +97,31 @@ public class ResourceAttribute implements Identifiable, Serializable{
     	return this.value;
     }
     
-    public void setValue(String value){
+    public void setValue(String value)
+    	    throws ResourcesException{
+
+    	if ( ( value == null || value.isEmpty() ) && this.getMetadata().isMandatory() ){
+			throw new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
+					this.getMetadata().getName(), this.getMetadata().getType());
+		}
+
+		if ( value == null || value.isEmpty() ){
+			this.value = "";
+		}
+		else if ( this.getMetadata().getType().equals("DATE") ){
+			if ( !DateFormatter.getInstance().isCorrectDateFormat(value) ){
+				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
+    					this.getMetadata().getName(), this.getMetadata().getType(), value);
+			}
+		}
+		else if ( this.getMetadata().getType().equals("NUMBER") ){
+			try {
+				Double.valueOf(value);
+			} catch (NumberFormatException e) {
+				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
+    					this.getMetadata().getName(), this.getMetadata().getType(), value);
+			}
+		}
     	this.value = value;
     }
     

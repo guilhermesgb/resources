@@ -11,6 +11,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import json.JsonObject;
+
 import com.smartiks.voldemort.core.form.annotations.FormField;
 import com.smartiks.voldemort.core.persistence.dao.Identifiable;
 
@@ -47,10 +49,28 @@ public class ResourceTypeAttribute implements Identifiable, Serializable{
     
     protected ResourceTypeAttribute() {}
     
-    protected ResourceTypeAttribute(String name, String type, Boolean mandatory){
+    protected ResourceTypeAttribute(JsonObject data)
+    		throws ResourcesException{
+
+    	String name = data.get("name").asString();
+		if ( name == null || name.trim().isEmpty() ){
+			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_NAME);
+		}
+		
+		String type = data.get("type").asString().trim();
+		if ( type == null || type.isEmpty() || !(type.equals("TEXT") ||
+				type.equals("NUMBER") || type.equals("DATE")) ){
+			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_TYPE);
+		}
+
+		String mandatory = data.get("mandatory").asString();
+		if ( mandatory == null || mandatory.trim().isEmpty()
+				|| !(mandatory.equals("true") || mandatory.equals("false")) ){
+			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_IS_MANDATORY);
+		}
     	this.name = name;
     	this.type = type;
-    	this.mandatory = mandatory;
+    	this.mandatory = new Boolean(mandatory);
     }
 
 	@Override

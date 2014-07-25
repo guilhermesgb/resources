@@ -15,9 +15,6 @@ import json.JsonValue;
 
 import com.smartiks.voldemort.core.persistence.DefaultEntityManagerProvider;
 import com.smartiks.voldemort.core.persistence.dao.DAO;
-import com.smartiks.voldemort.core.util.time.DateFormatter;
-import com.smartiks.voldemort.core.validator.ValidationException;
-import com.smartiks.voldemort.core.validator.ValidationManager;
 
 
 public class ResourcesManager {
@@ -25,18 +22,11 @@ public class ResourcesManager {
 	private static Logger logger = Logger.getLogger(ResourceType.class.getName());
 	private static EntityManager entityManager = new DefaultEntityManagerProvider("resources")
 	    .createEntityManager();
-	private static DateFormatter dateFormatter = DateFormatter.getInstance();
 	
     public static Integer createResourceType(String name, String description)
-            throws ResourcesException, ValidationException{
-        if ( name == null || name.trim().isEmpty() ){
-            throw new ResourcesException(ResourcesExceptionType.INVALID_NAME);
-        }
-        else if ( description == null || description.trim().isEmpty() ){
-            throw new ResourcesException(ResourcesExceptionType.INVALID_DESCRIPTION);
-        }
+            throws ResourcesException{
+    	
         ResourceType resourceType = new ResourceType(name, description);
-        ValidationManager.getInstance().validate(resourceType);
         (new DAO(entityManager)).insert(resourceType);
         logger.info("Object of class " + resourceType.getClass() + " (ID " + resourceType.getId() + ")" +
             " was created successfully; details: " + resourceType.toString());
@@ -45,6 +35,7 @@ public class ResourcesManager {
     
     public static void removeResourceType(Integer id)
             throws ResourcesException{
+
     	ResourceType resourceType = findResourceType(id);
     	DAO dataAccess = new DAO(entityManager);
 
@@ -62,52 +53,27 @@ public class ResourcesManager {
                 " - alongside with its ResourceTypeAttributes (whose details are logged above)");
     }
 
-    public static void updateResourceType(Integer id, String name, String description, String attributes)
-            throws ResourcesException, ValidationException{
+    public static void updateResourceType(Integer id, String name, String description, String attributesRaw)
+            throws ResourcesException{
+
     	ResourceType resourceType = findResourceType(id);
-
-        if ( name == null || name.trim().isEmpty() ){
-            throw new ResourcesException(ResourcesExceptionType.INVALID_NAME);
-        }
         resourceType.setName(name);
-
-        if ( description == null || description.trim().isEmpty() ){
-            throw new ResourcesException(ResourcesExceptionType.INVALID_DESCRIPTION);
-        }
     	resourceType.setDescription(description);
-        ValidationManager.getInstance().validate(resourceType);
     	
-    	JsonArray _attributes = JsonArray.readFrom(attributes);
-    	Set<ResourceTypeAttribute> __attributes = new HashSet<ResourceTypeAttribute>();
+    	JsonArray attributesJSON = JsonArray.readFrom(attributesRaw);
+    	Set<ResourceTypeAttribute> attributes = new HashSet<ResourceTypeAttribute>();
     	
     	Map<String, Boolean> usedAttributeNames = new HashMap<String, Boolean>();
     	
-    	for ( JsonValue attribute : _attributes ){
-    		JsonObject _attribute = (JsonObject) attribute;
+    	for ( JsonValue attributeJSON : attributesJSON ){
 
-    		String attributeName = _attribute.get("name").asString();
-    		if ( attributeName == null || attributeName.trim().isEmpty() ){
-    			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_NAME);
-    		}
-    		else if ( usedAttributeNames.containsKey(attributeName) ){
+    		ResourceTypeAttribute attribute = new ResourceTypeAttribute(attributeJSON.asObject());
+
+    		if ( usedAttributeNames.containsKey(attribute.getName()) ){
     			throw new ResourcesException(ResourcesExceptionType.ATTRIBUTE_NAME_MUST_BE_UNIQUE);
     		}
-    		usedAttributeNames.put(attributeName, true);
-    		
-    		String attributeType = _attribute.get("type").asString().trim();
-    		if ( attributeType == null || attributeType.isEmpty() || !(attributeType.equals("TEXT") ||
-    				attributeType.equals("NUMBER") || attributeType.equals("DATE")) ){
-    			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_TYPE);
-    		}
-
-    		String attributeIsMandatory = _attribute.get("mandatory").asString();
-    		if ( attributeIsMandatory == null || attributeIsMandatory.trim().isEmpty()
-    				|| !(attributeIsMandatory.equals("true") || attributeIsMandatory.equals("false")) ){
-    			throw new ResourcesException(ResourcesExceptionType.INVALID_ATTRIBUTE_IS_MANDATORY);
-    		}
-    		ResourceTypeAttribute __attribute = new ResourceTypeAttribute(attributeName, attributeType, new Boolean(attributeIsMandatory));
-            ValidationManager.getInstance().validate(__attribute);
-    		__attributes.add(__attribute);
+    		usedAttributeNames.put(attribute.getName(), true);
+    		attributes.add(attribute);
     	}
     	
     	HashMap<String, ResourceTypeAttribute> oldAttributes = new HashMap<String, ResourceTypeAttribute>();
@@ -116,7 +82,7 @@ public class ResourcesManager {
     	}
     	
     	HashMap<String, ResourceTypeAttribute> newAttributes = new HashMap<String, ResourceTypeAttribute>();
-    	for ( ResourceTypeAttribute attribute : __attributes ){
+    	for ( ResourceTypeAttribute attribute : attributes ){
     		newAttributes.put(attribute.getName(), attribute);
     	}
     	
@@ -141,14 +107,10 @@ public class ResourcesManager {
     					/* Which means the old one should be removed from the database and the new one, inserted */
 
     					ResourceTypeAttribute newAttribute = newAttributes.get(attribute);
-    					updatedAttributes.add(newAttribute);
-
     					ResourceTypeAttribute oldAttribute = oldAttributes.get(attribute);
 
         				int amount = howManyResourcesUseThisAttribute(dataAccess, oldAttribute);
         				if ( amount > 0 ){
-        					transaction.rollback();
-        	    	    	logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
         	    			throw new ResourcesException(ResourcesExceptionType.ATTRIBUTE_CANNOT_BE_UPDATED,
         	    					attribute, oldAttribute.getType(), amount);
         				}
@@ -157,6 +119,7 @@ public class ResourcesManager {
         	            logger.info("Transaction [" + transactionUUID + "]: Object of class " + oldAttribute.getClass() + " (ID " + oldAttribute.getId() + ")" +
         	                    " will be removed; details: " + oldAttribute.toString());
 
+        	            updatedAttributes.add(newAttribute);
         	            dataAccess.insert(newAttribute);
         	            logger.info("Transaction [" + transactionUUID + "]: Object of class " + newAttribute.getClass() + " (ID " + newAttribute.getId() + ")" +
         	                    " will be created; details: " + newAttribute.toString());
@@ -170,8 +133,6 @@ public class ResourcesManager {
 
     				int amount = howManyResourcesUseThisAttribute(dataAccess, _attribute);
     				if ( amount > 0 ){
-    					transaction.rollback();
-    	    	    	logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
     					throw new ResourcesException(ResourcesExceptionType.ATTRIBUTE_CANNOT_BE_REMOVED,
     	    					attribute, _attribute.getType(), amount);
     				}
@@ -200,10 +161,12 @@ public class ResourcesManager {
 	        transaction.commit();
 	    	logger.info("Transaction [" + transactionUUID + "] commited!");
     	} catch (RuntimeException e){
+    		throw new ResourcesException(ResourcesExceptionType.RESOURCE_TYPE_UPDATE_FAILED_UNEXPECTEDLY, e.getMessage());
+    	}
+    	finally{
     		if ( transaction.isActive() ){
     			transaction.rollback();
-    	    	logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-    			throw new ResourcesException(ResourcesExceptionType.RESOURCE_TYPE_UPDATE_FAILED_UNEXPECTEDLY, e.getMessage());
+    			logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
     		}
     	}
     }
@@ -222,59 +185,30 @@ public class ResourcesManager {
 		return resourceType;
 	}
     
-	public static Integer createResource(Integer id, String values)
-            throws ResourcesException, ValidationException{
+	public static Integer createResource(Integer id, String valuesRaw)
+            throws ResourcesException{
+		
     	ResourceType resourceType = findResourceType(id);
     	Resource resource = new Resource(resourceType);
-    	ValidationManager.getInstance().validate(resource);
     	
-    	JsonObject _values = JsonObject.readFrom(values);
-    	Set<ResourceTypeAttribute> attributes = resourceType.getAttributes();
-    	Set<ResourceAttribute> _attributes = new HashSet<ResourceAttribute>();
+    	JsonObject valuesJSON = JsonObject.readFrom(valuesRaw);
+    	Set<ResourceTypeAttribute> attributesMetadata = resourceType.getAttributes();
+    	Set<ResourceAttribute> attributes = new HashSet<ResourceAttribute>();
 
-    	for ( ResourceTypeAttribute attribute : attributes ){
+    	for ( ResourceTypeAttribute attributeMetadata : attributesMetadata ){
 
-    		JsonValue value = _values.get(attribute.getName());
-    		String _value = null;
-    		if ( value != null ){
-    			_value = value.asString().trim();
+    		JsonValue valueJSON = valuesJSON.get(attributeMetadata.getName());
+    		String value = null;
+    		if ( valueJSON != null ){
+    			value = valueJSON.asString().trim();
     		}
     		
-    		if ( ( _value == null || _value.isEmpty() ) && attribute.isMandatory() ){
-    			throw new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
-    					attribute.getName(), attribute.getType());
-    		}
-
-    		ResourceAttribute _attribute;
-    		if ( _value == null || _value.isEmpty() ){
-    			_attribute = new ResourceAttribute("", attribute, resource);
-    		}
-    		else if ( attribute.getType().equals("DATE") ){
-    			if ( !dateFormatter.isCorrectDateFormat(_value) ){
-	    			throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
-	    					attribute.getName(), attribute.getType(), _value);
-				}
-				_attribute = new ResourceAttribute(_value, attribute, resource);
-    		}
-    		else if ( attribute.getType().equals("NUMBER") ){
-    			try {
-    				Double.valueOf(_value);
-    				_attribute = new ResourceAttribute(_value, attribute, resource);
-    			} catch (NumberFormatException e) {
-	    			throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
-	    					attribute.getName(), attribute.getType(), _value);
-    			}
-    		}
-    		else{
-    			_attribute = new ResourceAttribute(_value, attribute, resource);
-    		}
-    		ValidationManager.getInstance().validate(_attribute);
-    		_attributes.add(_attribute);
-    		_values.remove(attribute.getName());
+    		attributes.add(new ResourceAttribute(resource, attributeMetadata, value));
+    		valuesJSON.remove(attributeMetadata.getName());
     	}
     	
-    	for ( String unknownName : _values.names() ){
-    		String unknownValue = _values.get(unknownName).asString();
+    	for ( String unknownName : valuesJSON.names() ){
+    		String unknownValue = valuesJSON.get(unknownName).asString();
 			throw new ResourcesException(ResourcesExceptionType.UNKNOWN_ATTRIBUTE,
 					resource.getType().getName(), unknownName, unknownValue);
     	}
@@ -289,7 +223,7 @@ public class ResourcesManager {
 	    	logger.info("Transaction [" + transactionUUID + "]: Object of class " + resource.getClass() + " (ID " + resource.getId() + ")" +
 	    			" will be created; details: " + resource.toString());
 	    	
-	    	for ( ResourceAttribute attribute : _attributes ){
+	    	for ( ResourceAttribute attribute : attributes ){
 	    		dataAccess.insert(attribute);
 	        	logger.info("Transaction [" + transactionUUID + "]: Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
 	        			" will be created; details: " + attribute.toString());
@@ -298,10 +232,12 @@ public class ResourcesManager {
 	    	logger.info("Transaction [" + transactionUUID + "] commited!");
     	}
 	    catch (RuntimeException e){
+	    	throw new ResourcesException(ResourcesExceptionType.RESOURCE_CREATION_FAILED_UNEXPECTEDLY, e.getMessage());
+	    }
+    	finally{
 	    	if ( transaction.isActive() ){
 	    		transaction.rollback();
 	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-    			throw new ResourcesException(ResourcesExceptionType.RESOURCE_CREATION_FAILED_UNEXPECTEDLY, e.getMessage());
 	    	}
 	    }
     	return resource.getId();
@@ -329,20 +265,22 @@ public class ResourcesManager {
     		logger.info("Transaction [" + transactionUUID + "] commited!");
 		}
 		catch (RuntimeException e){
+			throw new ResourcesException(ResourcesExceptionType.RESOURCE_DELETION_FAILED_UNEXPECTEDLY, e.getMessage());
+		}
+		finally{
 	    	if ( transaction.isActive() ){
 	    		transaction.rollback();
 	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-	    		throw new ResourcesException(ResourcesExceptionType.RESOURCE_DELETION_FAILED_UNEXPECTEDLY, e.getMessage());
 	    	}
 		}
 	}
 	
-	public static void updateResource(int id, String values)
-			throws ResourcesException, ValidationException {
+	public static void updateResource(int id, String valuesRaw)
+			throws ResourcesException {
 		
 		Resource resource = findResource(id);
 		Set<ResourceAttribute> attributes = resource.getAttributes(entityManager);
-		JsonObject _values = JsonObject.readFrom(values);
+		JsonObject valuesJSON = JsonObject.readFrom(valuesRaw);
     	
     	EntityTransaction transaction = entityManager.getTransaction();
     	String transactionUUID = UUID.randomUUID().toString();
@@ -353,123 +291,54 @@ public class ResourcesManager {
     	try {
     		for ( ResourceAttribute attribute : attributes ){
 
-    			JsonValue value = _values.get(attribute.getMetadata().getName());
-        		String _value = null;
-        		if ( value != null ){
-        			_value = value.asString().trim();
+    			JsonValue valueJSON = valuesJSON.get(attribute.getMetadata().getName());
+        		String value = null;
+        		if ( valueJSON != null ){
+        			value = valueJSON.asString().trim();
         		}
         		else{
         			/* This attribute is not meant to be updated, skip it */
         			continue;
         		}
 
-        		if ( ( _value == null || _value.isEmpty() ) && attribute.getMetadata().isMandatory() ){
-    	    		transaction.rollback();
-    	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-        			throw new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
-        					attribute.getMetadata().getName(), attribute.getMetadata().getType());
-        		}
-
-        		if ( _value == null || _value.isEmpty() ){
-        			attribute.setValue("");
-        		}
-        		else if ( attribute.getMetadata().getType().equals("DATE") ){
-        			if ( !dateFormatter.isCorrectDateFormat(_value) ){
-        	    		transaction.rollback();
-        	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-        				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
-    	    					attribute.getMetadata().getName(), attribute.getMetadata().getType(), _value);
-    				}
-    				attribute.setValue(_value);
-        		}
-        		else if ( attribute.getMetadata().getType().equals("NUMBER") ){
-        			try {
-        				Double.valueOf(_value);
-        				attribute.setValue(_value);
-        			} catch (NumberFormatException e) {
-        	    		transaction.rollback();
-        	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-        				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
-    	    					attribute.getMetadata().getName(), attribute.getMetadata().getType(), _value);
-        			}
-        		}
-        		else{
-        			attribute.setValue(_value);
-        		}
-        		ValidationManager.getInstance().validate(attribute);
+        		attribute.setValue(value);
         		dataAccess.update(attribute);
             	logger.info("Transaction [" + transactionUUID + "]: Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
             			" will be updated; details: " + attribute.toString());
-        		_values.remove(attribute.getMetadata().getName());
+        		valuesJSON.remove(attribute.getMetadata().getName());
     		}
     		
-    		if ( _values.size() > 0 ){
+    		if ( valuesJSON.size() > 0 ){
     			/* Some unknown attribute names were provided, so
     			 * check if new ResourceTypeAttributes were added to the ResourceType
     			 * but this Resource is unaware of this fact */
 
-    			Map<String, ResourceTypeAttribute> _attributes = new HashMap<String, ResourceTypeAttribute>();
-    			for ( ResourceTypeAttribute attribute : resource.getType().getAttributes() ){
-    				_attributes.put(attribute.getName(), attribute);
+    			Map<String, ResourceTypeAttribute> attributesMetadata = new HashMap<String, ResourceTypeAttribute>();
+    			for ( ResourceTypeAttribute attributeMetadata : resource.getType().getAttributes() ){
+    				attributesMetadata.put(attributeMetadata.getName(), attributeMetadata);
     			}
     			
-    			for ( String unknownName : _values.names() ){
-    				if ( _attributes.containsKey(unknownName) ){
+    			for ( String unknownName : valuesJSON.names() ){
+    				if ( attributesMetadata.containsKey(unknownName) ){
     					
     					/* This is a new ResourceTypeAttribute that this Resource didn't have */
     					
-    					ResourceTypeAttribute attribute = _attributes.get(unknownName);
+    					ResourceTypeAttribute attributeMetadata = attributesMetadata.get(unknownName);
 
-    		    		JsonValue value = _values.get(unknownName);
-    		    		String _value = null;
-    		    		if ( value != null ){
-    		    			_value = value.asString().trim();
-    		    		}
-
-    		    		if ( ( _value == null || _value.isEmpty() ) && attribute.isMandatory() ){
-    			    		transaction.rollback();
-    			    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-    		    			throw new ResourcesException(ResourcesExceptionType.MANDATORY_ATTRIBUTE_OMMITED,
-    		    					attribute.getName(), attribute.getType());
+    		    		JsonValue valueJSON = valuesJSON.get(unknownName);
+    		    		String value = null;
+    		    		if ( valueJSON != null ){
+    		    			value = valueJSON.asString().trim();
     		    		}
 
-    		    		ResourceAttribute _attribute;
-    		    		if ( _value == null || _value.isEmpty() ){
-    		    			_attribute = new ResourceAttribute("", attribute, resource);
-    		    		}
-    		    		else if ( attribute.getType().equals("DATE") ){
-    		    			if ( !dateFormatter.isCorrectDateFormat(_value) ){
-    		    	    		transaction.rollback();
-    		    	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-    		    				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
-    			    					attribute.getName(), attribute.getType(), _value);
-    						}
-    						_attribute = new ResourceAttribute(_value, attribute, resource);
-    		    		}
-    		    		else if ( attribute.getType().equals("NUMBER") ){
-    		    			try {
-    		    				Double.valueOf(_value);
-    		    				_attribute = new ResourceAttribute(_value, attribute, resource);
-    		    			} catch (NumberFormatException e) {
-    		    	    		transaction.rollback();
-    		    	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-    		    				throw new ResourcesException(ResourcesExceptionType.INVALID_VALUE,
-    			    					attribute.getName(), attribute.getType(), _value);
-    		    			}
-    		    		}
-    		    		else{
-    		    			_attribute = new ResourceAttribute(_value, attribute, resource);
-    		    		}
-    		    		ValidationManager.getInstance().validate(_attribute);
-    		    		attributes.add(_attribute);
-    		    		dataAccess.insert(_attribute);
-    		        	logger.info("Transaction [" + transactionUUID + "]: Object of class " + _attribute.getClass() + " (ID " + _attribute.getId() + ")" +
-    		        			" will be created; details: " + _attribute.toString());
+    		    		ResourceAttribute attribute = new ResourceAttribute(resource, attributeMetadata, value);
+    		    		attributes.add(attribute);
+    		    		dataAccess.insert(attribute);
+    		        	logger.info("Transaction [" + transactionUUID + "]: Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
+    		        			" will be created; details: " + attribute.toString());
     				}
     				else{
-	    	    		transaction.rollback();
-	    	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-	    	    		String unknownValue = _values.get(unknownName).asString();
+	    	    		String unknownValue = valuesJSON.get(unknownName).asString();
     					throw new ResourcesException(ResourcesExceptionType.UNKNOWN_ATTRIBUTE,
     							resource.getType().getName(), unknownName, unknownValue);
     				}
@@ -480,10 +349,12 @@ public class ResourcesManager {
     		logger.info("Transaction [" + transactionUUID + "] commited!");
     	}
     	catch (RuntimeException e){
+    		throw new ResourcesException(ResourcesExceptionType.RESOURCE_UPDATE_FAILED_UNEXPECTEDLY, e.getMessage());
+    	}
+    	finally{
     		if ( transaction.isActive() ){
-	    		transaction.rollback();
-	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
-	    		throw new ResourcesException(ResourcesExceptionType.RESOURCE_UPDATE_FAILED_UNEXPECTEDLY, e.getMessage());
+    			transaction.rollback();
+    			logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
     		}
     	}
 	}

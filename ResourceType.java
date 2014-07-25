@@ -52,8 +52,16 @@ public class ResourceType implements Identifiable, Serializable{
 
     protected ResourceType(){}
     
-    protected ResourceType(String name, String description){
-        this.name = name;
+    protected ResourceType(String name, String description)
+    		throws ResourcesException{
+
+    	if ( name == null || name.trim().isEmpty() ){
+            throw new ResourcesException(ResourcesExceptionType.INVALID_RESOURCE_TYPE_NAME);
+        }
+        else if ( description == null ){
+            throw new ResourcesException(ResourcesExceptionType.INVALID_RESOURCE_TYPE_DESCRIPTION);
+        }
+    	this.name = name;
         this.description = description;
         this.attributes = new HashSet<ResourceTypeAttribute>();
     }
@@ -72,7 +80,12 @@ public class ResourceType implements Identifiable, Serializable{
     	return this.name;
     }
     
-    public void setName(String name){
+    public void setName(String name)
+    		throws ResourcesException{
+
+    	if ( name == null || name.trim().isEmpty() ){
+            throw new ResourcesException(ResourcesExceptionType.INVALID_RESOURCE_TYPE_NAME);
+        }
     	this.name = name;
     }
     
@@ -80,7 +93,12 @@ public class ResourceType implements Identifiable, Serializable{
     	return this.description;
     }
 
-    public void setDescription(String description){
+    public void setDescription(String description)
+    		throws ResourcesException{
+
+        if ( description == null ){
+            throw new ResourcesException(ResourcesExceptionType.INVALID_RESOURCE_TYPE_DESCRIPTION);
+        }
     	this.description = description;
     }
     
