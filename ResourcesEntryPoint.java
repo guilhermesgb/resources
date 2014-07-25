@@ -46,7 +46,7 @@ public class ResourcesEntryPoint {
 					methodName, unexpected.getCause().getMessage()));
 		}
 		catch (InvocationTargetException exceptions){
-			throw new CompoundResourcesException(((ResourcesException) exceptions.getCause()));
+			throw new CompoundResourcesException((ResourcesException) exceptions.getCause());
 		}
 	}
 
