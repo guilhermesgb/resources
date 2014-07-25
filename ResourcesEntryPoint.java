@@ -41,8 +41,8 @@ public class ResourcesEntryPoint {
 		}
 		catch (NoSuchMethodException | SecurityException | IllegalAccessException | 
 				IllegalArgumentException unexpected){
-			throw new CompoundResourcesException(
-					new ResourcesException(ResourcesExceptionType.METHOD_EXECUTION_PROBLEM,
+			throw new CompoundResourcesException(new ResourcesException(
+					true, ResourcesExceptionType.METHOD_EXECUTION_PROBLEM,
 					methodName, unexpected.getCause().getMessage()));
 		}
 		catch (InvocationTargetException exceptions){
