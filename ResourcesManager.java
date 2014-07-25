@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -19,7 +18,6 @@ import com.smartiks.voldemort.core.persistence.dao.DAO;
 
 public class ResourcesManager {
 
-	private static Logger logger = Logger.getLogger(ResourceType.class.getName());
 	private static EntityManager entityManager = new DefaultEntityManagerProvider("resources")
 	    .createEntityManager();
 	
@@ -28,8 +26,8 @@ public class ResourcesManager {
     	
         ResourceType resourceType = new ResourceType(name, description);
         (new DAO(entityManager)).insert(resourceType);
-        logger.info("Object of class " + resourceType.getClass() + " (ID " + resourceType.getId() + ")" +
-            " was created successfully; details: " + resourceType.toString());
+        ResourcesLog.log(ResourcesLogType.OBJECT_INSERTED,
+        		resourceType.getClass(), resourceType.getId(), resourceType.toString());
         return resourceType.getId();
     }
     
@@ -43,14 +41,14 @@ public class ResourcesManager {
     		if ( resourceTypeIsUsed(dataAccess, resourceType) ){
     			throw new ResourcesException(ResourcesExceptionType.RESOURCE_TYPE_IN_USE, resourceType.getName());
     		}
-            logger.info("Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
-                    " is about to be removed; details: " + attribute.toString());
+            ResourcesLog.log(ResourcesLogType.OBJECT_ABOUT_TO_BE_REMOVED,
+            		attribute.getClass(), attribute.getId(), attribute.toString());
     	}
 
     	dataAccess.remove(resourceType);
-        logger.info("Object of class " + resourceType.getClass() + " (ID " + resourceType.getId() + ")" +
-                " was removed successfully; details: " + resourceType.toString() +
-                " - alongside with its ResourceTypeAttributes (whose details are logged above)");
+        ResourcesLog.log(ResourcesLogType.OBJECT_REMOVED_RECURSIVELY,
+        		resourceType.getClass(), resourceType.getId(),
+        		resourceType.toString(), "ResourceTypeAttributes");
     }
 
     public static void updateResourceType(Integer id, String name, String description, String attributesRaw)
@@ -89,84 +87,89 @@ public class ResourcesManager {
     	EntityTransaction transaction = entityManager.getTransaction();
     	String transactionUUID = UUID.randomUUID().toString();
     	transaction.begin();
-    	logger.info("New transaction [" + transactionUUID + "] began!");
+    	ResourcesLog.log(ResourcesLogType.TRANSACTION_BEGAN, transactionUUID);
     	DAO dataAccess = new DAO(entityManager);
     	
     	try {
     		Set<ResourceTypeAttribute> updatedAttributes = new HashSet<ResourceTypeAttribute>();
     		
-    		for ( String attribute : oldAttributes.keySet() ){
-    			if ( newAttributes.containsKey(attribute) ){
-    				if ( oldAttributes.get(attribute).equals(newAttributes.get(attribute)) ){
+    		for ( String attributeName : oldAttributes.keySet() ){
+    			if ( newAttributes.containsKey(attributeName) ){
+    				if ( oldAttributes.get(attributeName).equals(newAttributes.get(attributeName)) ){
     					/* Attribute was left unchanged, so old instance of it should remain */ 
 
-    					updatedAttributes.add(oldAttributes.get(attribute));
+    					updatedAttributes.add(oldAttributes.get(attributeName));
     				}
     				else {
     					/* Attribute was updated, so new instance of it will be used */
     					/* Which means the old one should be removed from the database and the new one, inserted */
 
-    					ResourceTypeAttribute newAttribute = newAttributes.get(attribute);
-    					ResourceTypeAttribute oldAttribute = oldAttributes.get(attribute);
+    					ResourceTypeAttribute newAttributeMetadata = newAttributes.get(attributeName);
+    					ResourceTypeAttribute oldAttributeMetadata = oldAttributes.get(attributeName);
 
-        				int amount = howManyResourcesUseThisAttribute(dataAccess, oldAttribute);
+        				int amount = howManyResourcesUseThisAttribute(dataAccess, oldAttributeMetadata);
         				if ( amount > 0 ){
         	    			throw new ResourcesException(ResourcesExceptionType.ATTRIBUTE_CANNOT_BE_UPDATED,
-        	    					attribute, oldAttribute.getType(), amount);
+        	    					attributeName, oldAttributeMetadata.getType(), amount);
         				}
     					
-    					dataAccess.remove(oldAttribute);
-        	            logger.info("Transaction [" + transactionUUID + "]: Object of class " + oldAttribute.getClass() + " (ID " + oldAttribute.getId() + ")" +
-        	                    " will be removed; details: " + oldAttribute.toString());
+    					dataAccess.remove(oldAttributeMetadata);
+    					ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_REMOVED,
+    							transactionUUID, oldAttributeMetadata.getClass(),
+    							oldAttributeMetadata.getId(), oldAttributeMetadata.toString());
 
-        	            updatedAttributes.add(newAttribute);
-        	            dataAccess.insert(newAttribute);
-        	            logger.info("Transaction [" + transactionUUID + "]: Object of class " + newAttribute.getClass() + " (ID " + newAttribute.getId() + ")" +
-        	                    " will be created; details: " + newAttribute.toString());
+        	            updatedAttributes.add(newAttributeMetadata);
+        	            dataAccess.insert(newAttributeMetadata);
+    					ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_INSERTED,
+    							transactionUUID, newAttributeMetadata.getClass(),
+    							newAttributeMetadata.getId(), newAttributeMetadata.toString());
     				}
-    				newAttributes.remove(attribute);
+    				newAttributes.remove(attributeName);
     			}
     			else {
     				/* Attribute was removed, so do remove it from the database */
 
-    				ResourceTypeAttribute _attribute = oldAttributes.get(attribute);
+    				ResourceTypeAttribute attributeMetadata = oldAttributes.get(attributeName);
 
-    				int amount = howManyResourcesUseThisAttribute(dataAccess, _attribute);
+    				int amount = howManyResourcesUseThisAttribute(dataAccess, attributeMetadata);
     				if ( amount > 0 ){
     					throw new ResourcesException(ResourcesExceptionType.ATTRIBUTE_CANNOT_BE_REMOVED,
-    	    					attribute, _attribute.getType(), amount);
+    	    					attributeName, attributeMetadata.getType(), amount);
     				}
 
-    				dataAccess.remove(_attribute);
-    	            logger.info("Transaction [" + transactionUUID + "]: Object of class " + _attribute.getClass() + " (ID " + _attribute.getId() + ")" +
-    	                    " will be removed; details: " + _attribute.toString());
+    				dataAccess.remove(attributeMetadata);
+					ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_REMOVED,
+							transactionUUID, attributeMetadata.getClass(),
+							attributeMetadata.getId(), attributeMetadata.toString());
     			}
     		}
     		for ( String attribute : newAttributes.keySet() ){
     			/* Attribute was added, insert it to the database */
 
-    			ResourceTypeAttribute newAttribute = newAttributes.get(attribute);
-				updatedAttributes.add(newAttribute);
+    			ResourceTypeAttribute newAttributeMetadata = newAttributes.get(attribute);
+				updatedAttributes.add(newAttributeMetadata);
 
-				dataAccess.insert(newAttribute);
-	    		logger.info("Transaction [" + transactionUUID + "]: Object of class " + newAttribute.getClass() + " (ID " + newAttribute.getId() + ")" +
-	                    " will be created; details: " + newAttribute.toString());
+				dataAccess.insert(newAttributeMetadata);
+				ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_INSERTED,
+						transactionUUID, newAttributeMetadata.getClass(),
+						newAttributeMetadata.getId(), newAttributeMetadata.toString());
     		}
 
 	    	resourceType.setAttributes(updatedAttributes);
 	    	dataAccess.update(resourceType);
-	        logger.info("Transaction [" + transactionUUID + "]: Object of class " + resourceType.getClass() + " (ID " + resourceType.getId() + ")" +
-	                " will be updated; details: " + resourceType.toString());
+			ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_UPDATED,
+					transactionUUID, resourceType.getClass(),
+					resourceType.getId(), resourceType.toString());
 
 	        transaction.commit();
-	    	logger.info("Transaction [" + transactionUUID + "] commited!");
+	        ResourcesLog.log(ResourcesLogType.TRANSACTION_COMMITED, transactionUUID);
     	} catch (RuntimeException e){
     		throw new ResourcesException(ResourcesExceptionType.RESOURCE_TYPE_UPDATE_FAILED_UNEXPECTEDLY, e.getMessage());
     	}
     	finally{
     		if ( transaction.isActive() ){
     			transaction.rollback();
-    			logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
+    	        ResourcesLog.log(ResourcesLogType.TRANSACTION_ROLLED_BACK, transactionUUID);
     		}
     	}
     }
@@ -216,20 +219,23 @@ public class ResourcesManager {
     	EntityTransaction transaction = entityManager.getTransaction();
     	String transactionUUID = UUID.randomUUID().toString();
     	transaction.begin();
-    	logger.info("New transaction [" + transactionUUID + "] began!");
+        ResourcesLog.log(ResourcesLogType.TRANSACTION_BEGAN, transactionUUID);
     	DAO dataAccess = new DAO(entityManager);
     	try {
-	    	dataAccess.insert(resource);
-	    	logger.info("Transaction [" + transactionUUID + "]: Object of class " + resource.getClass() + " (ID " + resource.getId() + ")" +
-	    			" will be created; details: " + resource.toString());
+
+    		dataAccess.insert(resource);
+			ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_INSERTED,
+					transactionUUID, resource.getClass(),
+					resource.getId(), resource.toString());
 	    	
 	    	for ( ResourceAttribute attribute : attributes ){
 	    		dataAccess.insert(attribute);
-	        	logger.info("Transaction [" + transactionUUID + "]: Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
-	        			" will be created; details: " + attribute.toString());
+				ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_INSERTED,
+						transactionUUID, attribute.getClass(),
+						attribute.getId(), attribute.toString());
 	    	}
 	    	transaction.commit();
-	    	logger.info("Transaction [" + transactionUUID + "] commited!");
+	        ResourcesLog.log(ResourcesLogType.TRANSACTION_COMMITED, transactionUUID);
     	}
 	    catch (RuntimeException e){
 	    	throw new ResourcesException(ResourcesExceptionType.RESOURCE_CREATION_FAILED_UNEXPECTEDLY, e.getMessage());
@@ -237,7 +243,7 @@ public class ResourcesManager {
     	finally{
 	    	if ( transaction.isActive() ){
 	    		transaction.rollback();
-	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
+    	        ResourcesLog.log(ResourcesLogType.TRANSACTION_ROLLED_BACK, transactionUUID);
 	    	}
 	    }
     	return resource.getId();
@@ -250,19 +256,23 @@ public class ResourcesManager {
     	EntityTransaction transaction = entityManager.getTransaction();
     	String transactionUUID = UUID.randomUUID().toString();
     	transaction.begin();
-		logger.info("New transaction [" + transactionUUID + "] began!");
+        ResourcesLog.log(ResourcesLogType.TRANSACTION_BEGAN, transactionUUID);
     	DAO dataAccess = new DAO(entityManager);		
 		try {
 			for ( ResourceAttribute attribute : resource.getAttributes(entityManager) ){
 				dataAccess.remove(attribute);
-	        	logger.info("Transaction [" + transactionUUID + "]: Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
-	        			" will be removed; details: " + attribute.toString());
+    	        ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_REMOVED,
+    	        		transactionUUID, attribute.getClass(),
+    	        		attribute.getId(), attribute.toString());
 			}
+
 			dataAccess.remove(resource);
-	    	logger.info("Transaction [" + transactionUUID + "]: Object of class " + resource.getClass() + " (ID " + resource.getId() + ")" +
-	    			" will be removed; details: " + resource.toString());
-			transaction.commit();
-    		logger.info("Transaction [" + transactionUUID + "] commited!");
+	        ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_REMOVED,
+	        		transactionUUID, resource.getClass(),
+	        		resource.getId(), resource.toString());
+	    	
+	        transaction.commit();
+	        ResourcesLog.log(ResourcesLogType.TRANSACTION_COMMITED, transactionUUID);
 		}
 		catch (RuntimeException e){
 			throw new ResourcesException(ResourcesExceptionType.RESOURCE_DELETION_FAILED_UNEXPECTEDLY, e.getMessage());
@@ -270,7 +280,7 @@ public class ResourcesManager {
 		finally{
 	    	if ( transaction.isActive() ){
 	    		transaction.rollback();
-	    		logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
+	            ResourcesLog.log(ResourcesLogType.TRANSACTION_ROLLED_BACK, transactionUUID);
 	    	}
 		}
 	}
@@ -285,11 +295,12 @@ public class ResourcesManager {
     	EntityTransaction transaction = entityManager.getTransaction();
     	String transactionUUID = UUID.randomUUID().toString();
     	transaction.begin();
-    	logger.info("New transaction [" + transactionUUID + "] began!");
+        ResourcesLog.log(ResourcesLogType.TRANSACTION_BEGAN, transactionUUID);
     	DAO dataAccess = new DAO(entityManager);
     	
     	try {
     		for ( ResourceAttribute attribute : attributes ){
+    			/* First of all, updating attributes this Resource already has */
 
     			JsonValue valueJSON = valuesJSON.get(attribute.getMetadata().getName());
         		String value = null;
@@ -303,13 +314,14 @@ public class ResourcesManager {
 
         		attribute.setValue(value);
         		dataAccess.update(attribute);
-            	logger.info("Transaction [" + transactionUUID + "]: Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
-            			" will be updated; details: " + attribute.toString());
+    	        ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_UPDATED,
+    	        		transactionUUID, attribute.getClass(),
+    	        		attribute.getId(), attribute.toString());
         		valuesJSON.remove(attribute.getMetadata().getName());
     		}
     		
     		if ( valuesJSON.size() > 0 ){
-    			/* Some unknown attribute names were provided, so
+    			/* Then, as some unknown attribute names were provided,
     			 * check if new ResourceTypeAttributes were added to the ResourceType
     			 * but this Resource is unaware of this fact */
 
@@ -334,8 +346,9 @@ public class ResourcesManager {
     		    		ResourceAttribute attribute = new ResourceAttribute(resource, attributeMetadata, value);
     		    		attributes.add(attribute);
     		    		dataAccess.insert(attribute);
-    		        	logger.info("Transaction [" + transactionUUID + "]: Object of class " + attribute.getClass() + " (ID " + attribute.getId() + ")" +
-    		        			" will be created; details: " + attribute.toString());
+    	    	        ResourcesLog.log(ResourcesLogType.TRANSACTION_OBJECT_INSERTED,
+    	    	        		transactionUUID, attribute.getClass(),
+    	    	        		attribute.getId(), attribute.toString());
     				}
     				else{
 	    	    		String unknownValue = valuesJSON.get(unknownName).asString();
@@ -346,7 +359,7 @@ public class ResourcesManager {
     		}
     		
     		transaction.commit();
-    		logger.info("Transaction [" + transactionUUID + "] commited!");
+            ResourcesLog.log(ResourcesLogType.TRANSACTION_COMMITED, transactionUUID);
     	}
     	catch (RuntimeException e){
     		throw new ResourcesException(ResourcesExceptionType.RESOURCE_UPDATE_FAILED_UNEXPECTEDLY, e.getMessage());
@@ -354,7 +367,7 @@ public class ResourcesManager {
     	finally{
     		if ( transaction.isActive() ){
     			transaction.rollback();
-    			logger.info("Transaction [" + transactionUUID + "] failed and is rolled back!");
+    	        ResourcesLog.log(ResourcesLogType.TRANSACTION_ROLLED_BACK, transactionUUID);
     		}
     	}
 	}
@@ -387,24 +400,4 @@ public class ResourcesManager {
 		return resources.size();
 	}
     
-    public static void main(String[] args) throws Exception{
-
-    	int id1 = ResourcesManager.createResourceType("TR1", "desc1");
-    	logger.info("Operation done");
-    	int id2 = ResourcesManager.createResourceType("TR2", "desc2");
-    	logger.info("Operation done");
-    	ResourcesManager.updateResourceType(id1, "TR1 (updated)", "description1", "[{\"name\":\"att1\",\"type\":\"NUMBER\",\"mandatory\":\"false\"}]");
-    	logger.info("Operation done");
-    	ResourcesManager.updateResourceType(id2, "TR2 (updated)", "description2", "[{\"name\":\"data\",\"type\":\"DATE\",\"mandatory\":\"true\"}]");
-    	logger.info("Operation done");
-    	int id3 = ResourcesManager.createResource(id1, "{\"att2\":\"10\"}");
-    	Resource r1 = findResource(id3);
-    	logger.info("Resource " + r1.getId() + " has attrs: " + r1.getAttributes(entityManager).toString());
-    	logger.info("Operation done");
-    	int id4 = ResourcesManager.createResource(id2, "{\"data\":\"10/10/2014\"}");
-    	Resource r2 = findResource(id4);
-    	logger.info("Resource " + r2.getId() + " has attrs: " + r2.getAttributes(entityManager).toString());
-    	logger.info("Operation done");
-    }
-
 }
