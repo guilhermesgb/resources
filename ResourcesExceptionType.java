@@ -1,25 +1,26 @@
 
+
 public enum ResourcesExceptionType{
 
-	INVALID_RESOURCE_TYPE_NAME("Invalid ResourceType name (cannot be empty)!"),
-	INVALID_RESOURCE_TYPE_DESCRIPTION("Invalid ResourceType description (cannot be null)!"),
-	RESOURCE_TYPE_NOT_FOUND("ResourceType not found!"),
-	INVALID_ATTRIBUTE_NAME("Invalid ResourceTypeAttribute property 'name' (cannot be empty)!"),
-	INVALID_ATTRIBUTE_TYPE("Invalid ResourceTypeAttribute property 'type' (cannot be empty and must one of 'TEXT', 'NUMBER' or 'DATE')!"),
-	INVALID_ATTRIBUTE_IS_MANDATORY("Invalid ResourceTypeAttribute property 'mandatory' (cannot be empty, must be exactly equal to 'true' or 'false')!"),
-	ATTRIBUTE_NAME_MUST_BE_UNIQUE("Invalid ResourceTypeAttribute property 'name' (must be unique)!"),
-	MANDATORY_ATTRIBUTE_OMMITED("ResourceAttribute '%s' of type '%s' is mandatory (cannot be null or empty)!"),
-	INVALID_VALUE("Invalid ResourceAttribute '%s' value (is of type '%s', so cannot be: '%s')!"),
-	RESOURCE_TYPE_UPDATE_FAILED_UNEXPECTEDLY("Update of ResourceType failed unexpectedly: %s!"),
-	RESOURCE_NOT_FOUND("Resource not found!"),
-	RESOURCE_CREATION_FAILED_UNEXPECTEDLY("Creation of Resource failed unexpectedly: %s!"),
-	RESOURCE_DELETION_FAILED_UNEXPECTEDLY("Deletion of Resource failed unexpectedly: %s!"),
-	RESOURCE_UPDATE_FAILED_UNEXPECTEDLY("Update of Resource failed unexpectedly: %s!"),
-	ATTRIBUTE_CANNOT_BE_REMOVED("ResourceAttribute '%s' of type '%s' cannot be removed, because %d Resources use it!"),
-	ATTRIBUTE_CANNOT_BE_UPDATED("ResourceAttribute '%s' of type '%s' cannot be updated, because %d Resources use it!"),
-	RESOURCE_TYPE_IN_USE("ResourceType '%s' cannot be removed, because there are Resources using it!"),
-	UNKNOWN_ATTRIBUTE("Resource '%s' has no attribute named '%s' (whose value would be: '%s')!"),
-	METHOD_EXECUTION_PROBLEM("A unexpected error happened while executing method '%s': '%s'");
+	INVALID_RESOURCE_TYPE_NAME("Nome de tipo de recurso inválido (não pode ser vazio)!"),
+	INVALID_RESOURCE_TYPE_DESCRIPTION("Descrição de tipo de recurso inválida (não pode ser nulo)!"),
+	RESOURCE_TYPE_NOT_FOUND("Tipo de recurso não encontrado!"),
+	INVALID_ATTRIBUTE_NAME("Propriedade 'nome' de definição de atributo inválida (não pode ser vazio)!"),
+	INVALID_ATTRIBUTE_TYPE("Propriedade 'nome' de definição de tipo de atributo inválida (não pode ser vazio e deve ser um dos seguintes valores: TEXT, NUMBER ou DATE)!"),
+	INVALID_ATTRIBUTE_IS_MANDATORY("Propriedade 'mandatório' de definição de atributo inválida (não pode ser vazio e deve ser um exatamente 'true' ou 'false')!"),
+	ATTRIBUTE_NAME_MUST_BE_UNIQUE("Propriedade 'nome' de definição de atributo inválida (não pode ser repetida)!"),
+	MANDATORY_ATTRIBUTE_OMMITED("Atributo de nome '%s', cujo tipo é '%s' é mandatório (não pode ser nulo nem vazio)!"),
+	INVALID_VALUE("Valor inválido para o atributo '%s' (é do tipo '%s', então o valor não pode ser: '%s')!"),
+	RESOURCE_TYPE_UPDATE_FAILED_UNEXPECTEDLY("Atualização de definição de tipo de recurso falhou inesperadamente: %s!"),
+	RESOURCE_NOT_FOUND("Recurso não encontrado!"),
+	RESOURCE_CREATION_FAILED_UNEXPECTEDLY("Criação de definição de tipo de recurso falhou inesperadamente: %s!"),
+	RESOURCE_DELETION_FAILED_UNEXPECTEDLY("Remoção de definição de tipo de recurso falhou inesperadamente: %s!"),
+	RESOURCE_UPDATE_FAILED_UNEXPECTEDLY("Atualização de recurso falhou inesperadamente: %s!"),
+	ATTRIBUTE_CANNOT_BE_REMOVED("Atributo de nome '%s', cujo tipo é '%s' não pode ser removido, porque '%d' recursos o possuem!"),
+	ATTRIBUTE_CANNOT_BE_UPDATED("Atributo de nome '%s', cujo tipo é '%s' não pode ser atualizado, porque '%d' recursos o possuem!"),
+	RESOURCE_TYPE_IN_USE("Tipo de recurso de nome '%s' não pode ser removido, porque foram criados recursos desse tipo!"),
+	UNKNOWN_ATTRIBUTE("Recurso de nome '%s' não tem nenhum atributo com nome '%s' (cujo valor seria: '%s')!"),
+	METHOD_EXECUTION_PROBLEM("Um erro inesperado ocorreu durante a execução da operação '%s': '%s'");
 	
 	public String message;
 	ResourcesExceptionType(String message){

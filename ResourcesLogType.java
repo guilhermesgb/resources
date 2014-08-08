@@ -1,3 +1,4 @@
+
 import java.util.logging.Level;
 
 public enum ResourcesLogType {

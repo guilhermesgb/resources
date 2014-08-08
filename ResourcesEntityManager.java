@@ -1,3 +1,4 @@
+
 import javax.persistence.EntityManager;
 
 import com.smartiks.voldemort.core.persistence.DefaultEntityManagerProvider;
